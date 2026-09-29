@@ -193,31 +193,15 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
               <Spinner size="lg" />
             </div>
           ) : products.length === 0 ? (
-           <div className="flex min-h-[300px] items-center justify-center px-4">
- <div className="flex min-h-[320px] items-center justify-center px-4">
-  <div className="text-center">
-
-    <div className="relative mx-auto mb-5 h-40 w-40">
-
-      <div className="theme-decoration absolute inset-0 rounded-full blur-2xl" />
-
-      <div className="theme-product-empty relative flex h-full w-full items-center justify-center overflow-hidden rounded-3xl border">
-          <video   src="/notfound.mp4"   autoPlay   loop   muted   playsInline   className="h-full w-full object-contain" />
-   </div>
-
-    </div>
-
-    <h3 className="text-lg font-semibold theme-text-primary">
-      No products found
-    </h3>
-
-    <p className="mt-1 text-sm theme-text-muted">
-      Try another search
-    </p>
-
-  </div>
-</div>
-</div>
+            <div className="flex min-h-[420px] items-center justify-center ">
+              <div className="theme-product-empty h-80 w-80 overflow-hidden rounded-3xl border">
+                <img
+                  src="/item_not_found.png"
+                  alt="No products found"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            </div>
           ) : (
             <>
               {/* Desktop */}

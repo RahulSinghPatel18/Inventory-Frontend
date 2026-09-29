@@ -11,6 +11,7 @@ import Dashboard from "../pages/Dashboard";
 import Products from "../pages/Products";   
 import ProtectedRoute from "./ProtectedRoute";
 import Profile from "../pages/Profile"; 
+import NotFound from "../pages/NotFound";
 
 const AppRoutes = () => {
   return (
@@ -69,12 +70,7 @@ const AppRoutes = () => {
 
         <Route
           path="*"
-          element={
-            <Navigate
-              to="/dashboard"
-              replace
-            />
-          }
+          element={<NotFound />}
         />
 
       </Routes>
