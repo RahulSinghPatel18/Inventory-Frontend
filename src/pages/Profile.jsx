@@ -1,14 +1,25 @@
-import { useEffect, useState } from "react";
-import {  User,  Mail,  Shield,  CalendarDays,  UserCircle} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, Mail, Shield, CalendarDays, UserCircle } from "lucide-react";
 import { toast } from "react-toastify";
 
 import Layout from "../components/layout/Layout";
+import Button from "../components/common/Button";
+import Input from "../components/common/Input";
 import Spinner from "../components/common/Spinner";
 import useAuth from "../hooks/useAuth";
 
 const Profile = () => {
-  const { user, getProfile, isLoading } = useAuth();
+  const { user, getProfile, updateProfile, isLoading } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const imageInputRef = useRef(null);
+
+  useEffect(() => {
+    setName(user?.name || "");
+    setProfileImage(user?.profileImage || "");
+  }, [user]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -26,6 +37,49 @@ const Profile = () => {
 
     loadProfile();
   }, [getProfile]);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be 5 MB or smaller");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => setProfileImage(reader.result);
+    reader.onerror = () => toast.error("Failed to read image");
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const updatedName = name.trim();
+
+    if (!updatedName) {
+      toast.error("Name is required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const data = await updateProfile({
+        name: updatedName,
+        profileImage: profileImage.trim()
+      });
+      toast.success(data.message || "Profile updated successfully");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading || isLoading) {
     return (
@@ -70,12 +124,33 @@ const Profile = () => {
 
             <div className="flex flex-col items-center text-center">
 
-              <div className="flex h-24 w-24 items-center justify-center rounded-full theme-primary-bg text-3xl font-bold text-white shadow-lg transition-transform duration-200 hover:scale-105">
-                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full theme-primary-bg text-3xl font-bold text-white shadow-lg transition-transform duration-200 hover:scale-105">
+                {profileImage ? (
+                  <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
+                ) : (
+                  name?.charAt(0)?.toUpperCase() || "U"
+                )}
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  aria-label="Upload profile picture"
+                  title="Upload profile picture"
+                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full theme-primary-action-bg text-white shadow-md"
+                >
+                  <Camera size={16} />
+                </button>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  tabIndex={-1}
+                />
               </div>
 
               <h2 className="mt-4 text-xl font-bold theme-text-primary">
-                {user?.name || "User"}
+                {name || "User"}
               </h2>
 
               <p className="mt-1 text-sm theme-text-muted">
@@ -106,29 +181,19 @@ const Profile = () => {
 
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-5 sm:grid-cols-2">
 
               {/* Full Name */}
-              <div className="theme-profile-field rounded-xl p-4 transition">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
-                    <User size={18} />
-                  </div>
-
-                  <div>
-                    <p className="text-xs theme-text-muted">
-                      Full Name
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold theme-text-primary">
-                      {user?.name || "Not available"}
-                    </p>
-                  </div>
-
-                </div>
-
+              <div>
+                <Input
+                  label="Full Name"
+                  name="name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Enter your name"
+                  required
+                />
               </div>
 
               {/* Email */}
@@ -201,7 +266,14 @@ const Profile = () => {
 
               </div>
 
-            </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <Button type="submit" loading={saving}>
+                  Save 
+                </Button>
+              </div>
+            </form>
 
           </div>
 

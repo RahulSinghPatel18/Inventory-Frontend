@@ -14,6 +14,11 @@ const authService = {
   getProfile: async () => {
     const response = await api.get("/users/Profile");
     return response.data;
+  },
+
+  updateProfile: async (profileData) => {
+    const response = await api.put("/users/UpdateProfile", profileData);
+    return response.data;
   }
 };
 

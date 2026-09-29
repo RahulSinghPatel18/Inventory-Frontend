@@ -1,7 +1,7 @@
 import useAuthStore from "../store/authStore";
 
 const useAuth = () => {
-  const { user,token,isAuthenticated,isLoading,login,logout,getProfile,initializeAuth} = useAuthStore();
+  const { user,token,isAuthenticated,isLoading,login,logout,getProfile,updateProfile,initializeAuth} = useAuthStore();
 
   return {
     user,
@@ -11,6 +11,7 @@ const useAuth = () => {
     login,
     logout,
     getProfile,
+    updateProfile,
     initializeAuth
   };
 };

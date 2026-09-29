@@ -1,32 +1,80 @@
 import { Link } from "react-router-dom";
-import {  LayoutDashboard,  Package,  Boxes,  IndianRupee,  AlertTriangle,  TrendingUp,  ArrowRight,  CircleX} from "lucide-react";
-import {  ResponsiveContainer,  BarChart,  Bar,  CartesianGrid,  XAxis,  YAxis,  Tooltip,  PieChart,  Pie,  Cell} from "recharts";
+import React from "react";
+import {
+  LayoutDashboard,
+  Package,
+  Boxes,
+  IndianRupee,
+  AlertTriangle,
+  TrendingUp,
+  ArrowRight,
+  CircleX
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell
+} from "recharts";
 
 import Layout from "../components/layout/Layout";
 import Spinner from "../components/common/Spinner";
 import useProducts from "../hooks/useProducts";
+import productService from "../services/productService";
 
 const Dashboard = () => {
   const {
     products,
-    pagination,
-    loading
+    loading: productsLoading
   } = useProducts();
 
-  const totalStock = products.reduce(
-    (total, product) => total + product.quantity,
-    0
-  );
+  const [stats, setStats] = React.useState({
+    totalProducts: 0,
+    totalStock: 0,
+    totalInventoryValue: 0,
+    lowStockProducts: 0,
+    outOfStockProducts: 0
+  });
 
-  const inventoryValue = products.reduce(
-    (total, product) =>
-      total + product.price * product.quantity,
-    0
-  );
+  const [statsLoading, setStatsLoading] = React.useState(true);
+  const [statsError, setStatsError] = React.useState("");
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await productService.getProductStats();
+        const data = response?.stats ?? response?.data ?? response;
+
+        setStats({
+          totalProducts: Number(data?.totalProducts) || 0,
+          totalStock: Number(data?.totalStock) || 0,
+          totalInventoryValue: Number(data?.totalInventoryValue) || 0,
+          lowStockProducts: Number(data?.lowStockProducts) || 0,
+          outOfStockProducts: Number(data?.outOfStockProducts) || 0
+        });
+      } catch (error) {
+        console.error("Failed to fetch product stats:", error);
+        setStatsError(
+          error.response?.data?.message || "Unable to load inventory statistics."
+        );
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const loading = productsLoading || statsLoading;
 
   const lowStockProducts = products.filter(
-    (product) =>
-      product.quantity > 0 && product.quantity <= 5
+    (product) => product.quantity > 0 && product.quantity <= 5
   );
 
   const outOfStockProducts = products.filter(
@@ -53,17 +101,20 @@ const Dashboard = () => {
   const stockData = [
     {
       name: "In Stock",
-      value: products.filter(
-        (product) => product.quantity > 5
-      ).length
+      value: Math.max(
+        stats.totalProducts -
+          stats.lowStockProducts -
+          stats.outOfStockProducts,
+        0
+      )
     },
     {
       name: "Low Stock",
-      value: lowStockProducts.length
+      value: stats.lowStockProducts
     },
     {
       name: "Out of Stock",
-      value: outOfStockProducts.length
+      value: stats.outOfStockProducts
     }
   ].filter((item) => item.value > 0);
 
@@ -81,14 +132,11 @@ const Dashboard = () => {
         <div className="mb-6 flex items-center gap-4">
 
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border theme-primary-border theme-primary-soft theme-primary-text shadow-sm transition-transform duration-200 hover:scale-105">
-            <LayoutDashboard
-              size={24}
-              strokeWidth={2}
-            />
+            <LayoutDashboard size={24} strokeWidth={2} />
           </div>
 
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight theme-text-primary sm:text-2xl">
+            <h1 className="text-2xl font-bold tracking-tight theme-text-primary">
               Dashboard
             </h1>
 
@@ -106,115 +154,83 @@ const Dashboard = () => {
         ) : (
           <>
 
-            {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 
-              {/* Total Products */}
-              <Link
-                to="/products"
-                className="block"
-              >
-                <div className="group rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+  <Link to="/products" className="block">
+    <div className="group rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-start justify-between">
+        <p className="text-sm font-medium theme-text-muted">
+          Total Products
+        </p>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-primary-soft theme-primary-text transition group-hover:scale-105">
+          <Package size={20} />
+        </div>
+      </div>
+      <p className="mt-4 text-3xl font-bold tracking-tight theme-text-primary">
+        {stats.totalProducts}
+      </p>
+    </div>
+  </Link>
 
-                  <div className="flex items-start justify-between">
+  <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm">
+    <div className="flex items-start justify-between">
+      <p className="text-sm font-medium theme-text-muted">
+        Total Stock
+      </p>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-info-soft theme-info">
+        <Boxes size={20} />
+      </div>
+    </div>
+    <p className="mt-4 text-3xl font-bold tracking-tight theme-text-primary">
+      {stats.totalStock}
+    </p>
+  </div>
 
-                    <div>
-                      <p className="text-sm font-medium theme-text-muted">
-                        Total Products
-                      </p>
+  <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm">
+    <div className="flex items-start justify-between">
+      <p className="text-sm font-medium theme-text-muted">
+        Inventory Value
+      </p>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
+        <IndianRupee size={20} />
+      </div>
+    </div>
+    <p className="mt-4 text-3xl font-bold tracking-tight theme-text-primary">
+      ₹{stats.totalInventoryValue.toLocaleString("en-IN")}
+    </p>
+  </div>
 
-                      <p className="mt-2 text-3xl font-bold tracking-tight theme-text-primary">
-                        {pagination?.totalProducts ?? 0}
-                      </p>
+  <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm">
+    <div className="flex items-start justify-between">
+      <p className="text-sm font-medium theme-text-muted">
+        Low Stock
+      </p>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-warning-soft theme-warning">
+        <AlertTriangle size={20} />
+      </div>
+    </div>
+    <p className="mt-4 text-3xl font-bold tracking-tight theme-text-primary">
+      {stats.lowStockProducts}
+    </p>
+  </div>
 
-                    
-                    </div>
+  <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm">
+    <div className="flex items-start justify-between">
+      <p className="text-sm font-medium theme-text-muted">
+        Out of Stock
+      </p>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-danger-soft theme-danger">
+        <CircleX size={20} />
+      </div>
+    </div>
+    <p className="mt-4 text-3xl font-bold tracking-tight theme-text-primary">
+      {stats.outOfStockProducts}
+    </p>
+  </div>
 
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl theme-primary-soft theme-primary-text transition group-hover:scale-105">
-                      <Package size={21} />
-                    </div>
+</div>
 
-                  </div>
 
-                </div>
-              </Link>
-
-              {/* Total Stock */}
-              <div className="group rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-
-                <div className="flex items-start justify-between">
-
-                  <div>
-                    <p className="text-sm font-medium theme-text-muted">
-                      Total Stock
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold tracking-tight theme-text-primary">
-                      {totalStock}
-                    </p>
-
-                   
-                  </div>
-
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl theme-info-soft theme-info transition group-hover:scale-105">
-                    <Boxes size={21} />
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* Inventory Value */}
-              <div className="group rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-
-                <div className="flex items-start justify-between">
-
-                  <div>
-                    <p className="text-sm font-medium theme-text-muted">
-                      Inventory Value
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold tracking-tight theme-text-primary">
-                      ₹{inventoryValue}
-                    </p>
-
-                 
-                  </div>
-
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl theme-primary-soft theme-primary-text transition group-hover:scale-105">
-                    <IndianRupee size={21} />
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* Low Stock */}
-              <div className="group rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-
-                <div className="flex items-start justify-between">
-
-                  <div>
-                    <p className="text-sm font-medium theme-text-muted">
-                      Low Stock
-                    </p>
-
-                    <p className="mt-2 text-3xl font-bold tracking-tight theme-text-primary">
-                      {lowStockProducts.length}
-                    </p>
-
-                  
-                  </div>
-
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl theme-warning-soft theme-warning transition group-hover:scale-105">
-                    <AlertTriangle size={21} />
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
 
             {/* Charts */}
             <div className="mt-5 grid gap-5 xl:grid-cols-3">
@@ -223,7 +239,6 @@ const Dashboard = () => {
               <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm xl:col-span-2">
 
                 <div className="mb-5">
-
                   <h2 className="text-base font-semibold theme-text-primary">
                     Stock by Category
                   </h2>
@@ -231,7 +246,6 @@ const Dashboard = () => {
                   <p className="mt-1 text-xs theme-text-muted">
                     Current stock distribution across categories
                   </p>
-
                 </div>
 
                 {categoryData.length === 0 ? (
@@ -241,10 +255,7 @@ const Dashboard = () => {
                 ) : (
                   <div className="h-[280px] w-full">
 
-                    <ResponsiveContainer
-                      width="100%"
-                      height="100%"
-                    >
+                    <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={categoryData}
                         margin={{
@@ -289,8 +300,7 @@ const Dashboard = () => {
                             borderRadius: "12px",
                             backgroundColor: "var(--theme-chart-tooltip)",
                             color: "var(--theme-text-primary)",
-                            boxShadow:
-                              "var(--theme-shadow)"
+                            boxShadow: "var(--theme-shadow)"
                           }}
                         />
 
@@ -313,7 +323,6 @@ const Dashboard = () => {
               <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm">
 
                 <div>
-
                   <h2 className="text-base font-semibold theme-text-primary">
                     Stock Status
                   </h2>
@@ -321,20 +330,16 @@ const Dashboard = () => {
                   <p className="mt-1 text-xs theme-text-muted">
                     Product availability overview
                   </p>
-
                 </div>
 
-                {products.length === 0 ? (
+                {stats.totalProducts === 0 ? (
                   <div className="flex h-[280px] items-center justify-center text-sm theme-text-muted">
                     No stock data available
                   </div>
                 ) : (
                   <div className="relative mt-4 h-[220px]">
 
-                    <ResponsiveContainer
-                      width="100%"
-                      height="100%"
-                    >
+                    <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
 
                         <Pie
@@ -349,16 +354,12 @@ const Dashboard = () => {
                           stroke="none"
                         >
 
-                          {stockData.map(
-                            (entry, index) => (
-                              <Cell
-                                key={entry.name}
-                                fill={
-                                  stockColors[index]
-                                }
-                              />
-                            )
-                          )}
+                          {stockData.map((entry, index) => (
+                            <Cell
+                              key={entry.name}
+                              fill={stockColors[index]}
+                            />
+                          ))}
 
                         </Pie>
 
@@ -380,7 +381,7 @@ const Dashboard = () => {
                       <div className="text-center">
 
                         <p className="text-2xl font-bold theme-text-primary">
-                          {products.length}
+                          {stats.totalProducts}
                         </p>
 
                         <p className="text-xs theme-text-muted">
@@ -407,8 +408,7 @@ const Dashboard = () => {
                         <span
                           className="h-2.5 w-2.5 rounded-full"
                           style={{
-                            backgroundColor:
-                              stockColors[index]
+                            backgroundColor: stockColors[index]
                           }}
                         />
 
@@ -440,7 +440,6 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between border-b theme-border-subtle px-5 py-4">
 
                   <div>
-
                     <h2 className="text-base font-semibold theme-text-primary">
                       Recent Products
                     </h2>
@@ -448,7 +447,6 @@ const Dashboard = () => {
                     <p className="mt-1 text-xs theme-text-muted">
                       Latest products in your inventory
                     </p>
-
                   </div>
 
                   <Link
@@ -468,50 +466,46 @@ const Dashboard = () => {
                 ) : (
                   <div className="divide-y theme-divide-y">
 
-                    {products.slice(0, 5).map(
-                      (product) => (
-                        <div
-                          key={product._id}
-                          className="flex items-center justify-between gap-4 px-5 py-4 transition theme-hover-surface"
-                        >
+                    {products.slice(0, 5).map((product) => (
+                      <div
+                        key={product._id}
+                        className="flex items-center justify-between gap-4 px-5 py-4 transition theme-hover-surface"
+                      >
 
-                          <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
 
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl theme-primary-soft font-semibold theme-primary-text">
-                              {product.name
-                                .charAt(0)
-                                .toUpperCase()}
-                            </div>
-
-                            <div className="min-w-0">
-
-                              <p className="truncate text-sm font-medium theme-text-primary">
-                                {product.name}
-                              </p>
-
-                              <p className="mt-0.5 truncate text-xs theme-text-muted">
-                                {product.category}
-                              </p>
-
-                            </div>
-
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl theme-primary-soft font-semibold theme-primary-text">
+                            {product.name.charAt(0).toUpperCase()}
                           </div>
 
-                          <div className="shrink-0 text-right">
+                          <div className="min-w-0">
 
-                            <p className="text-sm font-semibold theme-text-primary">
-                              ₹{product.price}
+                            <p className="truncate text-sm font-medium theme-text-primary">
+                              {product.name}
                             </p>
 
-                            <p className="mt-0.5 text-xs theme-text-muted">
-                              {product.quantity} units
+                            <p className="mt-0.5 truncate text-xs theme-text-muted">
+                              {product.category}
                             </p>
 
                           </div>
 
                         </div>
-                      )
-                    )}
+
+                        <div className="shrink-0 text-right">
+
+                          <p className="text-sm font-semibold theme-text-primary">
+                            ₹{product.price}
+                          </p>
+
+                          <p className="mt-0.5 text-xs theme-text-muted">
+                            {product.quantity} units
+                          </p>
+
+                        </div>
+
+                      </div>
+                    ))}
 
                   </div>
                 )}
@@ -535,8 +529,8 @@ const Dashboard = () => {
 
                 <div className="p-5">
 
-                  {lowStockProducts.length === 0 &&
-                  outOfStockProducts.length === 0 ? (
+                  {stats.lowStockProducts === 0 &&
+                  stats.outOfStockProducts === 0 ? (
                     <div className="flex min-h-[180px] flex-col items-center justify-center text-center">
 
                       <div className="flex h-11 w-11 items-center justify-center rounded-xl theme-success-soft theme-success">
@@ -555,59 +549,69 @@ const Dashboard = () => {
                   ) : (
                     <div className="space-y-3">
 
-                      {outOfStockProducts
-                        .slice(0, 3)
-                        .map((product) => (
-                          <div
-                            key={product._id}
-                            className="flex items-center gap-3 rounded-xl theme-danger-soft p-3"
-                          >
+                      {stats.outOfStockProducts > 0 && outOfStockProducts.length === 0 && (
+                        <p className="text-sm theme-text-secondary">
+                          {stats.outOfStockProducts} products are out of stock.
+                        </p>
+                      )}
 
-                            <CircleX
-                              size={18}
-                              className="shrink-0 theme-danger"
-                            />
+                      {stats.lowStockProducts > 0 && lowStockProducts.length === 0 && (
+                        <p className="text-sm theme-text-secondary">
+                          {stats.lowStockProducts} products are low on stock.
+                        </p>
+                      )}
 
-                            <div className="min-w-0">
+                      {outOfStockProducts.slice(0, 3).map((product) => (
+                        <div
+                          key={product._id}
+                          className="flex items-center gap-3 rounded-xl theme-danger-soft p-3"
+                        >
 
-                              <p className="truncate text-sm font-medium theme-text-primary">
-                                {product.name}
-                              </p>
+                          <CircleX
+                            size={18}
+                            className="shrink-0 theme-danger"
+                          />
 
-                              <p className="text-xs theme-danger">
-                                Out of stock
-                              </p>
+                          <div className="min-w-0">
 
-                            </div>
+                            <p className="truncate text-sm font-medium theme-text-primary">
+                              {product.name}
+                            </p>
 
-                          </div>
-                        ))}
-
-                      {lowStockProducts.slice(0, 3) .map((product) => (
-                          <div
-                            key={product._id}
-                            className="flex items-center gap-3 rounded-xl theme-warning-soft p-3"
-                          >
-
-                            <AlertTriangle
-                              size={18}
-                              className="shrink-0 theme-warning"
-                            />
-
-                            <div className="min-w-0">
-
-                              <p className="truncate text-sm font-medium theme-text-primary">
-                                {product.name}
-                              </p>
-
-                              <p className="text-xs theme-warning">
-                                Only {product.quantity} units left
-                              </p>
-
-                            </div>
+                            <p className="text-xs theme-danger">
+                              Out of stock
+                            </p>
 
                           </div>
-                        ))}
+
+                        </div>
+                      ))}
+
+                      {lowStockProducts.slice(0, 3).map((product) => (
+                        <div
+                          key={product._id}
+                          className="flex items-center gap-3 rounded-xl theme-warning-soft p-3"
+                        >
+
+                          <AlertTriangle
+                            size={18}
+                            className="shrink-0 theme-warning"
+                          />
+
+                          <div className="min-w-0">
+
+                            <p className="truncate text-sm font-medium theme-text-primary">
+                              {product.name}
+                            </p>
+
+                            <p className="text-xs theme-warning">
+                              Only {product.quantity} units left
+                            </p>
+
+                          </div>
+
+                        </div>
+                      ))}
 
                     </div>
                   )}
@@ -619,6 +623,12 @@ const Dashboard = () => {
             </div>
 
           </>
+        )}
+
+        {statsError && !statsLoading && (
+          <p role="alert" className="mt-4 rounded-lg border theme-danger-border theme-danger-soft px-4 py-3 text-sm theme-danger">
+            {statsError}
+          </p>
         )}
 
       </div>

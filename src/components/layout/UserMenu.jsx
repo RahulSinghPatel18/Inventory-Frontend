@@ -36,6 +36,7 @@ const UserMenu = () => {
             flex
             h-9
             w-9
+            overflow-hidden
             items-center
             justify-center
             rounded-full
@@ -45,7 +46,15 @@ const UserMenu = () => {
             text-white
           "
         >
-          {user?.name?.charAt(0)?.toUpperCase() || "U"}
+          {user?.profileImage ? (
+            <img
+              src={user.profileImage}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            user?.name?.charAt(0)?.toUpperCase() || "U"
+          )}
         </div>
 
         <div className="hidden text-left sm:block">

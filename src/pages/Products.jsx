@@ -1,7 +1,8 @@
-
+import React from "react";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
-import { Package } from "lucide-react";
+import { Package, Pencil, Trash2 } from "lucide-react";
+
 import Layout from "../components/layout/Layout";
 import PageHeader from "../components/common/PageHeader";
 import Button from "../components/common/Button";
@@ -14,10 +15,7 @@ import Pagination from "../components/common/Pagination";
 import useProducts from "../hooks/useProducts";
 import productService from "../services/productService";
 
-import {  Pencil, Trash2 } from "lucide-react";
-
 const Products = () => {
-
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -25,27 +23,73 @@ const Products = () => {
   const [deleteProduct, setDeleteProduct] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-const [search, setSearch] = useState("");
-const [debouncedSearch, setDebouncedSearch] = useState("");
-const [category, setCategory] = useState("");
-const [sort, setSort] = useState("");
-const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [sort, setSort] = useState("");
+  const [page, setPage] = useState(1);
 
-useEffect(() => {
-  if (search.length > 0 && search.length < 3) {
-    return;
-  }
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalStock: 0,
+    totalInventoryValue: 0,
+    lowStockProducts: 0,
+  });
 
-  const timer = setTimeout(() => {
-    setDebouncedSearch(search);
-    setPage(1);
-  }, 500);
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  return () => clearTimeout(timer);
-}, [search]);
+  useEffect(() => {
+    if (search.length > 0 && search.length < 3) {
+      return;
+    }
 
-const {products,pagination,loading,getProducts} = useProducts( {name: debouncedSearch,category,sort,page});
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const {
+    products,
+    pagination,
+    loading,
+    getProducts
+  } = useProducts({
+    name: debouncedSearch,
+    category,
+    sort,
+    page
+  });
+
   const isEditing = !!selectedProduct;
+
+  // Get Product Stats
+  const getStats = async () => {
+    try {
+      setStatsLoading(true);
+
+      const data = await productService.getProductStats();
+
+      setStats({
+        totalProducts: data.totalProducts ?? 0,
+        totalStock: data.totalStock ?? 0,
+        totalInventoryValue: data.totalInventoryValue ?? 0,
+        lowStockProducts: data.lowStockProducts ?? 0
+      });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to load product statistics"
+      );
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getStats();
+  }, []);
 
   // Create / Update
   const handleSaveProduct = async (productData) => {
@@ -53,16 +97,23 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
       setSaving(true);
 
       if (isEditing) {
-        await productService.updateProduct(selectedProduct._id, productData);
+        await productService.updateProduct(
+          selectedProduct._id,
+          productData
+        );
+
         toast.success("Product updated successfully");
       } else {
         await productService.createProduct(productData);
+
         toast.success("Product created successfully");
       }
 
       setShowModal(false);
       setSelectedProduct(null);
+
       getProducts();
+      getStats();
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Something went wrong"
@@ -88,7 +139,9 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
       toast.success("Product deleted successfully");
 
       setDeleteProduct(null);
+
       getProducts();
+      getStats();
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to delete product"
@@ -97,8 +150,6 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
       setDeleting(false);
     }
   };
-
-
 
   return (
     <Layout>
@@ -115,7 +166,7 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
                 setShowModal(true);
               }}
             >
-              + Add 
+              + Add
             </Button>
           }
         />
@@ -123,38 +174,49 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
         {/* Summary */}
         <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
+          {/* Total Products */}
           <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:shadow-md">
-            <p className="text-sm theme-text-muted">Total Products</p>
+            <p className="text-sm theme-text-muted">
+              Total Products
+            </p>
+
             <p className="mt-2 text-2xl font-bold theme-text-primary">
-              {products.length}
+              {statsLoading ? "—" : stats.totalProducts}
             </p>
           </div>
 
+          {/* Total Stock */}
           <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:shadow-md">
-            <p className="text-sm theme-text-muted">Total Stock</p>
+            <p className="text-sm theme-text-muted">
+              Total Stock
+            </p>
+
             <p className="mt-2 text-2xl font-bold theme-text-primary">
-              {products.reduce(
-                (total, product) => total + product.quantity,
-                0
-              )}
+              {statsLoading ? "—" : stats.totalStock}
             </p>
           </div>
 
+          {/* Inventory Value */}
           <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:shadow-md">
-            <p className="text-sm theme-text-muted">Inventory Value</p>
+            <p className="text-sm theme-text-muted">
+              Inventory Value
+            </p>
+
             <p className="mt-2 text-2xl font-bold theme-text-primary">
-              ₹
-              {products.reduce(
-                (total, product) =>
-                  total + product.price * product.quantity,
-                0
-              )}
+              {statsLoading
+                ? "—"
+                : `₹${stats.totalInventoryValue.toLocaleString("en-IN")}`}
             </p>
           </div>
+
+          {/* Low Stock */}
           <div className="rounded-2xl border theme-border theme-surface p-5 shadow-sm transition hover:shadow-md">
-            <p className="text-sm theme-text-muted">Low Stock Products</p>
+            <p className="text-sm theme-text-muted">
+              Low Stock Products
+            </p>
+
             <p className="mt-2 text-2xl font-bold theme-text-primary">
-              {products.filter((product) => product.quantity <= 5).length}
+              {statsLoading ? "—" : stats.lowStockProducts}
             </p>
           </div>
 
@@ -170,18 +232,22 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
               <h2 className="text-lg font-semibold theme-text-primary">
                 All Products
               </h2>
+
               <p className="mt-1 text-sm theme-text-muted">
                 View and manage your products
               </p>
             </div>
 
             <div className="w-full sm:w-72">
-              <Input              
-               name="search"             
-                 value={search}             
-                 onChange={(event) => {   setSearch(event.target.value);   setPage(1); }}
+              <Input
+                name="search"
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
                 placeholder="Search products..."
-               showSearchIcon
+                showSearchIcon
               />
             </div>
 
@@ -193,7 +259,7 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
               <Spinner size="lg" />
             </div>
           ) : products.length === 0 ? (
-            <div className="flex min-h-[420px] items-center justify-center ">
+            <div className="flex min-h-[420px] items-center justify-center">
               <div className="theme-product-empty h-80 w-80 overflow-hidden rounded-3xl border">
                 <img
                   src="/item_not_found.png"
@@ -252,7 +318,6 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
                               <p className="font-medium theme-text-primary">
                                 {product.name}
                               </p>
-                             
                             </div>
 
                           </div>
@@ -338,6 +403,7 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
                           <p className="truncate font-medium theme-text-primary">
                             {product.name}
                           </p>
+
                           <p className="mt-0.5 text-xs theme-text-muted">
                             {product.category}
                           </p>
@@ -372,14 +438,20 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
                     <div className="mt-4 grid grid-cols-2 gap-3">
 
                       <div className="rounded-lg theme-surface-secondary p-3">
-                        <p className="text-xs theme-text-muted">Price</p>
+                        <p className="text-xs theme-text-muted">
+                          Price
+                        </p>
+
                         <p className="mt-1 font-semibold theme-text-primary">
                           ₹{product.price}
                         </p>
                       </div>
 
                       <div className="rounded-lg theme-surface-secondary p-3">
-                        <p className="text-xs theme-text-muted">Stock</p>
+                        <p className="text-xs theme-text-muted">
+                          Stock
+                        </p>
+
                         <p className="mt-1 font-semibold theme-text-primary">
                           {product.quantity}
                         </p>
@@ -391,13 +463,14 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
                 ))}
 
               </div>
+
               <Pagination
-  page={pagination.page}
-  totalPages={pagination.totalPages}
-  hasNextPage={pagination.hasNextPage}
-  hasPreviousPage={pagination.hasPreviousPage}
-  onPageChange={(newPage) => setPage(newPage)}
-/>
+                page={pagination.page}
+                totalPages={pagination.totalPages}
+                hasNextPage={pagination.hasNextPage}
+                hasPreviousPage={pagination.hasPreviousPage}
+                onPageChange={(newPage) => setPage(newPage)}
+              />
             </>
           )}
 
@@ -427,7 +500,6 @@ const {products,pagination,loading,getProducts} = useProducts( {name: debouncedS
             : ""
         }
       />
-      
 
     </Layout>
   );

@@ -13,6 +13,12 @@ const productService = {
     return response.data;
   },
 
+  getProductStats: async () => {
+    const response = await api.get("/products/Stats");
+
+    return response.data;
+  },
+
   getProductById: async (id) => {
     const response = await api.get( `/products/GetById/${id}` );
 

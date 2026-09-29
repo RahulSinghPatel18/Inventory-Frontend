@@ -56,6 +56,14 @@ const useAuthStore = create((set) => ({
     return data;
   },
 
+  updateProfile: async (profileData) => {
+    const data = await authService.updateProfile(profileData);
+    set((state) => ({
+      user: { ...state.user, ...data.user }
+    }));
+    return data;
+  },
+
   logout: () => {
     storage.removeToken();
     set({ user: null, token: null, isAuthenticated: false });

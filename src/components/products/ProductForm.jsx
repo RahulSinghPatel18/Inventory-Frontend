@@ -87,6 +87,7 @@ useEffect(() => {
         value={formData.quantity}
         onChange={handleChange}
         placeholder="Enter quantity"
+        min={0}
         required
         disabled={loading}
       />
