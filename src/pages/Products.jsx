@@ -11,6 +11,7 @@ import ProductModal from "../components/products/ProductModal";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import Input from "../components/common/Input";
 import Pagination from "../components/common/Pagination";
+import EmptyState from "../components/common/EmptyState";
 
 import useProducts from "../hooks/useProducts";
 import productService from "../services/productService";
@@ -259,15 +260,13 @@ const Products = () => {
               <Spinner size="lg" />
             </div>
           ) : products.length === 0 ? (
-            <div className="flex min-h-[420px] items-center justify-center">
-              <div className="theme-product-empty h-80 w-80 overflow-hidden rounded-3xl border">
-                <img
-                  src="/item_not_found.png"
-                  alt="No products found"
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            </div>
+            <EmptyState
+              title={search.trim() || category ? "No matching products" : "No products found"}
+              message={search.trim() || category
+                ? "Try adjusting your search or filters."
+                : "Add a product to your inventory to get started."}
+              className="min-h-[420px]"
+            />
           ) : (
             <>
               {/* Desktop */}
