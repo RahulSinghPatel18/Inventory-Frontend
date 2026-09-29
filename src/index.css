@@ -1,0 +1,320 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--theme-text-primary, #17201c);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--theme-background, #f6f8f7);
+  background-attachment: fixed;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+.theme-page-background {
+  background:
+    radial-gradient(circle at 15% 10%, var(--theme-background-glow), transparent 28%),
+    var(--theme-background);
+}
+
+.theme-surface {
+  background-color: var(--theme-surface);
+}
+
+.theme-surface-secondary {
+  background-color: var(--theme-surface-secondary);
+}
+
+.theme-surface-glass {
+  background-color: color-mix(in srgb, var(--theme-surface) 95%, transparent);
+}
+
+.theme-border {
+  border-color: var(--theme-border);
+}
+
+.theme-border-subtle {
+  border-color: var(--theme-border-subtle);
+}
+
+.theme-text-primary {
+  color: var(--theme-text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--theme-text-secondary);
+}
+
+.theme-text-muted {
+  color: var(--theme-text-muted);
+}
+
+.theme-primary-bg {
+  background-color: var(--theme-primary);
+}
+
+.theme-primary-action-bg {
+  background-color: var(--theme-primary-action);
+}
+
+.theme-primary-action-bg:hover {
+  background-color: var(--theme-primary-hover);
+}
+
+.theme-primary-bg:hover {
+  background-color: var(--theme-primary-hover);
+}
+
+.theme-danger-bg {
+  background-color: var(--theme-danger-action);
+}
+
+.theme-danger-bg:hover {
+  background-color: var(--theme-danger-action-hover);
+}
+
+.theme-primary-text {
+  color: var(--theme-primary-text);
+}
+
+.theme-primary-soft {
+  background-color: var(--theme-primary-soft);
+}
+
+.theme-decoration {
+  background-color: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+}
+
+.theme-decoration-muted {
+  background-color: color-mix(in srgb, var(--theme-primary) 8%, transparent);
+}
+
+.theme-security-note {
+  background-color: var(--theme-primary-soft);
+  box-shadow: 0 0 0 1px var(--theme-focus-ring);
+}
+
+.theme-profile-field {
+  border: 1px solid var(--theme-border-subtle);
+  background-color: var(--theme-surface-secondary);
+}
+
+.theme-profile-field:hover {
+  border-color: var(--theme-primary);
+  background-color: var(--theme-primary-soft);
+}
+
+.theme-profile-field-info:hover {
+  border-color: var(--theme-info);
+  background-color: var(--theme-info-soft);
+}
+
+.theme-product-empty {
+  border-color: color-mix(in srgb, var(--theme-primary) 20%, var(--theme-border));
+  background-color: var(--theme-primary-soft);
+  box-shadow: var(--theme-shadow);
+}
+
+.theme-primary-border {
+  border-color: var(--theme-primary);
+}
+
+.theme-danger-border {
+  border-color: var(--theme-danger);
+}
+
+.theme-input {
+  background-color: color-mix(in srgb, var(--theme-surface) 95%, transparent);
+  border-color: var(--theme-border);
+  color: var(--theme-text-primary);
+}
+
+.theme-input::placeholder {
+  color: var(--theme-text-muted);
+}
+
+.theme-input:hover:not(:disabled) {
+  border-color: var(--theme-text-muted);
+}
+
+.theme-input:focus {
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 4px var(--theme-focus-ring);
+}
+
+.theme-input:disabled {
+  background-color: var(--theme-surface-secondary);
+}
+
+.theme-input-error,
+.theme-input-error:focus {
+  border-color: var(--theme-danger);
+}
+
+.theme-input-error:focus {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-danger) 18%, transparent);
+}
+
+.theme-overlay {
+  background-color: var(--theme-overlay);
+}
+
+.theme-spinner {
+  border-color: var(--theme-border);
+  border-right-color: color-mix(in srgb, var(--theme-primary) 30%, transparent);
+  border-top-color: var(--theme-primary);
+}
+
+.theme-group-hover-surface {
+  transition: background-color 200ms;
+}
+
+.group:hover .theme-group-hover-surface {
+  background-color: var(--theme-surface);
+}
+
+.theme-group-hover-primary-text {
+  transition: color 200ms;
+}
+
+.group:hover .theme-group-hover-primary-text {
+  color: var(--theme-primary-text);
+}
+
+.theme-hover-text-primary:hover {
+  color: var(--theme-text-primary);
+}
+
+.theme-hover-text-secondary:hover {
+  color: var(--theme-text-secondary);
+}
+
+.theme-divide-y > :not(:last-child) {
+  border-color: var(--theme-border-subtle);
+}
+
+.theme-neutral-soft {
+  background-color: var(--theme-neutral-soft);
+}
+
+.theme-success {
+  color: var(--theme-success);
+}
+
+.theme-success-soft {
+  background-color: var(--theme-success-soft);
+}
+
+.theme-warning {
+  color: var(--theme-warning);
+}
+
+.theme-warning-soft {
+  background-color: var(--theme-warning-soft);
+}
+
+.theme-danger {
+  color: var(--theme-danger);
+}
+
+.theme-danger-soft {
+  background-color: var(--theme-danger-soft);
+}
+
+.theme-info {
+  color: var(--theme-info);
+}
+
+.theme-info-soft {
+  background-color: var(--theme-info-soft);
+}
+
+.theme-hover-surface:hover {
+  background-color: var(--theme-surface-secondary);
+}
+
+.theme-hover-neutral:hover {
+  background-color: var(--theme-neutral-soft);
+}
+
+.theme-hover-primary:hover {
+  background-color: var(--theme-primary-soft);
+}
+
+.theme-hover-danger:hover {
+  background-color: var(--theme-danger-soft);
+}
+
+.theme-hover-border-primary:hover {
+  border-color: var(--theme-primary);
+}
+
+.theme-hover-border-danger:hover {
+  border-color: var(--theme-danger);
+}
+
+.theme-hover-danger-text:hover {
+  color: var(--theme-danger);
+}
+
+.theme-shadow {
+  box-shadow: var(--theme-shadow);
+}
+
+.theme-shadow-lg {
+  box-shadow: var(--theme-shadow-lg);
+}
+
+button,
+input,
+select,
+textarea {
+font: inherit;
+}
+
+button {
+cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+::selection {
+background: var(--theme-primary-soft);
+color: var(--theme-text-primary);
+}
+
+::-webkit-scrollbar {
+width: 7px;
+height: 7px;
+}
+
+::-webkit-scrollbar-track {
+background: var(--theme-background);
+}
+
+::-webkit-scrollbar-thumb {
+background: var(--theme-border);
+border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+background: var(--theme-text-muted);
+}
