@@ -25,9 +25,11 @@ return ( <header className="sticky top-0 z-40 border-b theme-border theme-surfac
           className="h-9 w-9"
         />
 
-        <span className="hidden text-base font-bold theme-text-primary sm:block">
-          {appConfig.appName}
-        </span>
+        <div className="hidden sm:block">
+          <p className="text-sm font-bold leading-tight theme-text-primary">
+            {appConfig.appName}
+          </p>
+        </div>
       </div>
     </div>
 

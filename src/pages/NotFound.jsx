@@ -34,7 +34,7 @@ return ( <main className="theme-page-background flex min-h-dvh items-center just
 icon={FileQuestion}
 headingLevel="h1"
 title="Page not found"
-message="The page you’re looking for doesn’t exist or may have moved."
+message="The page you’re looking for doesn’t exist."
 className="min-h-0"
 action={( <div className="flex flex-col items-center"> <Link
            to="/dashboard"
