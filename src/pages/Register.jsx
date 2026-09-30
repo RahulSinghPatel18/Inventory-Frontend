@@ -16,6 +16,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    organizationName: "",
     password: ""
   });
 
@@ -36,7 +37,10 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await authService.register(formData);
+      await authService.register({
+        ...formData,
+        organizationName: formData.organizationName.trim()
+      });
 
       toast.success(
         "Account created successfully. Please login."
@@ -212,6 +216,16 @@ const Register = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="you@company.com"
+                required
+                disabled={isLoading}
+              />
+
+              <Input
+                label="Organization name"
+                name="organizationName"
+                value={formData.organizationName}
+                onChange={handleChange}
+                placeholder="Enter your organization name"
                 required
                 disabled={isLoading}
               />

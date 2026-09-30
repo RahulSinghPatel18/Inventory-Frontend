@@ -12,6 +12,7 @@ import ConfirmDialog from "../components/common/ConfirmDialog";
 import Input from "../components/common/Input";
 import Pagination from "../components/common/Pagination";
 import EmptyState from "../components/common/EmptyState";
+import useCategories from "../hooks/useCategories";
 
 import useProducts from "../hooks/useProducts";
 import productService from "../services/productService";
@@ -29,6 +30,12 @@ const Products = () => {
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("");
   const [page, setPage] = useState(1);
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+    refetch: refetchCategories
+  } = useCategories();
 
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -239,7 +246,26 @@ const Products = () => {
               </p>
             </div>
 
-            <div className="w-full sm:w-72">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <select
+                value={category}
+                onChange={(event) => {
+                  setCategory(event.target.value);
+                  setPage(1);
+                }}
+                disabled={categoriesLoading || !!categoriesError}
+                aria-label="Filter by category"
+                className="theme-input w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70 sm:w-52"
+              >
+                <option value="">
+                  {categoriesLoading ? "Loading categories..." : "All categories"}
+                </option>
+                {categories.map((item) => (
+                  <option key={item._id} value={item.name}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
               <Input
                 name="search"
                 value={search}
@@ -251,6 +277,19 @@ const Products = () => {
                 showSearchIcon
               />
             </div>
+
+            {categoriesError && (
+              <div className="flex items-center gap-2 text-sm theme-danger">
+                <span>{categoriesError}</span>
+                <button
+                  type="button"
+                  onClick={refetchCategories}
+                  className="font-semibold underline"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
           </div>
 
@@ -485,6 +524,10 @@ const Products = () => {
         onSubmit={handleSaveProduct}
         loading={saving}
         product={selectedProduct}
+        categories={categories}
+        categoriesLoading={categoriesLoading}
+        categoriesError={categoriesError}
+        onRetryCategories={refetchCategories}
       />
 
       <ConfirmDialog

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Mail, Shield, CalendarDays, UserCircle } from "lucide-react";
+import { Camera, Mail, Shield, CalendarDays, UserCircle, Building2 } from "lucide-react";
 import { toast } from "react-toastify";
 
 import Layout from "../components/layout/Layout";
@@ -74,6 +74,9 @@ const Profile = () => {
   const [name, setName] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const imageInputRef = useRef(null);
+  const organizationId = typeof user?.organizationId === "string"
+    ? user.organizationId
+    : user?.organizationId?._id || "";
 
   useEffect(() => {
     setName(user?.name || "");
@@ -320,6 +323,29 @@ const Profile = () => {
                     <p className="mt-1 flex items-center gap-2 text-sm font-semibold theme-text-primary">
                       <span className="h-2 w-2 rounded-full theme-primary-bg" />
                       Active
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Organization */}
+              <div className="theme-profile-field rounded-xl p-4 transition">
+
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
+                    <Building2 size={18} />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-xs theme-text-muted">
+                      Organization ID
+                    </p>
+
+                    <p className="mt-1 break-all text-sm font-semibold theme-text-primary">
+                      {organizationId || "Not available"}
                     </p>
                   </div>
 

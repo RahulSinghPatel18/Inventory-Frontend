@@ -9,6 +9,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import Products from "../pages/Products";   
+import Categories from "../pages/Categories";
 import ProtectedRoute from "./ProtectedRoute";
 import Profile from "../pages/Profile"; 
 import NotFound from "../pages/NotFound";
@@ -56,6 +57,14 @@ const AppRoutes = () => {
     </ProtectedRoute>
   }
 />
+        <Route
+          path="/categories"
+          element={
+            <ProtectedRoute>
+              <Categories />
+            </ProtectedRoute>
+          }
+        />
         {/* Default */}
 
         <Route

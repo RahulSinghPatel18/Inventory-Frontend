@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Package,
+  FolderKanban,
   UserCircle,
   Settings,
   BarChart3
@@ -16,6 +17,11 @@ const navigation = [
     label: "Products",
     path: "/products",
     icon: Package
+  },
+  {
+    label: "Categories",
+    path: "/categories",
+    icon: FolderKanban
   },
   {
     label: "Reports",

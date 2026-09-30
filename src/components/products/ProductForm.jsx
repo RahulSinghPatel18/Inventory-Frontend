@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 
 import Input from "../common/Input";
 import Button from "../common/Button";
+import Select from "../common/Select";
 
 const ProductForm = ({
   product,
   onSubmit,
-  loading
+  loading,
+  categories = [],
+  categoriesLoading = false,
+  categoriesError = "",
+  onRetryCategories
 }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -92,15 +97,39 @@ useEffect(() => {
         disabled={loading}
       />
 
-      <Input
+      <Select
         label="Category"
         name="category"
         value={formData.category}
         onChange={handleChange}
-        placeholder="Example: Smartphone"
+        placeholder={categoriesLoading ? "Loading categories..." : "Select a category"}
+        options={[
+          ...categories.map((category) => ({
+            value: category.name,
+            label: category.name
+          })),
+          ...(product?.category && !categories.some((category) => category.name === product.category)
+            ? [{ value: product.category, label: product.category }]
+            : [])
+        ]}
+        error={categoriesError}
         required
-        disabled={loading}
+        disabled={loading || categoriesLoading || (!categories.length && !product?.category)}
       />
+
+      {categoriesError && onRetryCategories && (
+        <button
+          type="button"
+          onClick={onRetryCategories}
+          className="text-sm font-medium theme-primary-text theme-hover-text-primary"
+        >
+          Retry loading categories
+        </button>
+      )}
+
+      {!categoriesLoading && !categoriesError && categories.length === 0 && !product?.category && (
+        <p className="text-sm theme-text-muted">Create a category before adding a product.</p>
+      )}
 
       <Button
         type="submit"

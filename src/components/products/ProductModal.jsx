@@ -6,7 +6,11 @@ const ProductModal = ({
   onClose,
   onSubmit,
   loading,
-  product
+  product,
+  categories,
+  categoriesLoading,
+  categoriesError,
+  onRetryCategories
 }) => {
   return (
     <Modal 
@@ -22,6 +26,10 @@ const ProductModal = ({
         product={product}
         onSubmit={onSubmit}
         loading={loading}
+        categories={categories}
+        categoriesLoading={categoriesLoading}
+        categoriesError={categoriesError}
+        onRetryCategories={onRetryCategories}
       />
     </Modal>
   );
