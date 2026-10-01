@@ -10,8 +10,11 @@ import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import Products from "../pages/Products";   
 import Categories from "../pages/Categories";
+import Stock from "../pages/Stock";
 import ProtectedRoute from "./ProtectedRoute";
 import Profile from "../pages/Profile"; 
+import Settings from "../pages/Settings";
+import Reports from "../pages/Reports";
 import NotFound from "../pages/NotFound";
 
 const AppRoutes = () => {
@@ -49,6 +52,22 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
 <Route
   path="/products"
   element={
@@ -62,6 +81,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <Categories />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stock"
+          element={
+            <ProtectedRoute>
+              <Stock />
             </ProtectedRoute>
           }
         />

@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import React from "react";
 import {
-  LayoutDashboard,
   Package,
   Boxes,
   IndianRupee,
@@ -84,11 +83,13 @@ const Dashboard = () => {
   const categoryMap = {};
 
   products.forEach((product) => {
-    if (!categoryMap[product.category]) {
-      categoryMap[product.category] = 0;
+    const categoryName = product.category?.name ?? product.category;
+
+    if (!categoryMap[categoryName]) {
+      categoryMap[categoryName] = 0;
     }
 
-    categoryMap[product.category] += product.quantity;
+    categoryMap[categoryName] += product.quantity;
   });
 
   const categoryData = Object.entries(categoryMap).map(
@@ -129,12 +130,7 @@ const Dashboard = () => {
       <div className="mx-auto max-w-7xl">
 
         {/* Header */}
-        <div className="mb-6 flex items-center gap-4">
-
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border theme-primary-border theme-primary-soft theme-primary-text shadow-sm transition-transform duration-200 hover:scale-105">
-            <LayoutDashboard size={24} strokeWidth={2} />
-          </div>
-
+        <div className="mb-6">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight theme-text-primary">
               Dashboard
@@ -485,7 +481,7 @@ const Dashboard = () => {
                             </p>
 
                             <p className="mt-0.5 truncate text-xs theme-text-muted">
-                              {product.category}
+                              {product.category?.name ?? product.category}
                             </p>
 
                           </div>

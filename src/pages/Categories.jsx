@@ -99,7 +99,6 @@ const Categories = () => {
         <PageHeader
           title="Categories"
           description="Organize products by category"
-          icon={FolderKanban}
           action={
             <Button onClick={openCreateModal}>
               <Plus size={17} />

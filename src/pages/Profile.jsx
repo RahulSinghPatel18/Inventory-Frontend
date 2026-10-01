@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Mail, Shield, CalendarDays, UserCircle, Building2 } from "lucide-react";
+import { Camera, Mail, Shield, CalendarDays, Building2, Pencil, Save, X } from "lucide-react";
 import { toast } from "react-toastify";
 
 import Layout from "../components/layout/Layout";
@@ -71,22 +71,20 @@ const Profile = () => {
   const { user, getProfile, updateProfile, isLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [name, setName] = useState("");
-  const [profileImage, setProfileImage] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(user?.name || "");
+  const [profileImage, setProfileImage] = useState(user?.profileImage || "");
   const imageInputRef = useRef(null);
   const organizationId = typeof user?.organizationId === "string"
     ? user.organizationId
     : user?.organizationId?._id || "";
 
   useEffect(() => {
-    setName(user?.name || "");
-    setProfileImage(user?.profileImage || "");
-  }, [user]);
-
-  useEffect(() => {
     const loadProfile = async () => {
       try {
-        await getProfile();
+        const data = await getProfile();
+        setName(data.user?.name || "");
+        setProfileImage(data.user?.profileImage || "");
       } catch (error) {
         toast.error(
           error.response?.data?.message ||
@@ -101,6 +99,8 @@ const Profile = () => {
   }, [getProfile]);
 
   const handleImageChange = async (event) => {
+    if (!isEditing || saving) return;
+
     const file = event.target.files?.[0];
     event.target.value = "";
 
@@ -124,6 +124,8 @@ const Profile = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!isEditing) return;
+
     const updatedName = name.trim();
 
     if (!updatedName) {
@@ -137,12 +139,21 @@ const Profile = () => {
         name: updatedName,
         profileImage: profileImage.trim()
       });
+      setName(data.user?.name || updatedName);
+      setProfileImage(data.user?.profileImage || profileImage.trim());
       toast.success(data.message || "Profile updated successfully");
+      setIsEditing(false);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setName(user?.name || "");
+    setProfileImage(user?.profileImage || "");
+    setIsEditing(false);
   };
 
   if (loading || isLoading) {
@@ -158,17 +169,9 @@ const Profile = () => {
   return (
     <Layout>
       <div className="mx-auto max-w-7xl">
-
+        <form onSubmit={handleSubmit}>
         {/* Header */}
-        <div className="mb-6 flex items-center gap-4">
-
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border theme-primary-border theme-primary-soft theme-primary-text shadow-sm transition-transform duration-200 hover:scale-105">
-            <UserCircle
-              size={25}
-              strokeWidth={2}
-            />
-          </div>
-
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight theme-text-primary sm:text-2xl">
               Profile
@@ -178,7 +181,28 @@ const Profile = () => {
               View your account information
             </p>
           </div>
-
+          {isEditing ? (
+            <div className="flex shrink-0 gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={saving}
+              >
+                <X size={16} />
+                Cancel
+              </Button>
+              <Button type="submit" loading={saving}>
+                <Save size={16} />
+                Save 
+              </Button>
+            </div>
+          ) : (
+            <Button type="button" onClick={() => setIsEditing(true)} className="shrink-0">
+              <Pencil size={16} />
+              Edit 
+            </Button>
+          )}
         </div>
 
         <div className="grid gap-5 lg:grid-cols-3">
@@ -194,15 +218,18 @@ const Profile = () => {
                 ) : (
                   name?.charAt(0)?.toUpperCase() || "U"
                 )}
-                <button
-                  type="button"
-                  onClick={() => imageInputRef.current?.click()}
-                  aria-label="Upload profile picture"
-                  title="Upload profile picture"
-                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full theme-primary-action-bg text-white shadow-md"
-                >
-                  <Camera size={16} />
-                </button>
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={saving}
+                    aria-label="Upload profile picture"
+                    title="Upload profile picture"
+                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full theme-primary-action-bg text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Camera size={16} />
+                  </button>
+                )}
                 <input
                   ref={imageInputRef}
                   type="file"
@@ -210,6 +237,7 @@ const Profile = () => {
                   onChange={handleImageChange}
                   className="hidden"
                   tabIndex={-1}
+                  disabled={!isEditing || saving}
                 />
               </div>
 
@@ -245,7 +273,6 @@ const Profile = () => {
 
             </div>
 
-            <form onSubmit={handleSubmit}>
               <div className="grid gap-5 sm:grid-cols-2">
 
               {/* Full Name */}
@@ -257,6 +284,7 @@ const Profile = () => {
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Enter your name"
                   required
+                  disabled={!isEditing || saving}
                 />
               </div>
 
@@ -355,16 +383,10 @@ const Profile = () => {
 
               </div>
 
-              <div className="mt-6 flex justify-end">
-                <Button type="submit" loading={saving}>
-                  Save 
-                </Button>
-              </div>
-            </form>
-
           </div>
 
         </div>
+        </form>
 
       </div>
     </Layout>

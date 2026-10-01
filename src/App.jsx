@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 
 import AppRoutes from "./routes/AppRoutes";
@@ -11,15 +11,26 @@ import { themeColors } from "./config/theme";
 
 function App() {
   const theme = useUiStore((state) => state.theme);
-   const { initializeAuth } = useAuth();
-   
-useEffect(() => {
-const root = document.documentElement;
-root.classList.toggle("dark", theme === "dark");
-Object.entries(themeColors[theme] || themeColors.light).forEach(
-  ([token, value]) => root.style.setProperty(token, value)
-);
-}, [theme]);
+  const { initializeAuth } = useAuth();
+  const [systemTheme, setSystemTheme] = useState(() =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+  );
+  const resolvedTheme = theme === "system" ? systemTheme : theme;
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const updateSystemTheme = (event) => setSystemTheme(event.matches ? "dark" : "light");
+    mediaQuery.addEventListener("change", updateSystemTheme);
+    return () => mediaQuery.removeEventListener("change", updateSystemTheme);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("dark", resolvedTheme === "dark");
+    Object.entries(themeColors[resolvedTheme] || themeColors.light).forEach(
+      ([token, value]) => root.style.setProperty(token, value)
+    );
+  }, [resolvedTheme]);
 
   useEffect(() => {
     initializeAuth();
@@ -37,7 +48,7 @@ Object.entries(themeColors[theme] || themeColors.light).forEach(
         closeOnClick
         pauseOnHover
         draggable
-        theme={theme}
+        theme={resolvedTheme}
       />
     </>
   );

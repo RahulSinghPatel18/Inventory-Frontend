@@ -4,6 +4,16 @@ import Input from "../common/Input";
 import Button from "../common/Button";
 import Select from "../common/Select";
 
+const getCategoryId = (category) =>
+  typeof category === "object" && category !== null
+    ? String(category._id ?? "")
+    : category ?? "";
+
+const getCategoryName = (category) =>
+  typeof category === "object" && category !== null
+    ? category.name ?? ""
+    : category ?? "";
+
 const ProductForm = ({
   product,
   onSubmit,
@@ -19,6 +29,8 @@ const ProductForm = ({
     quantity: "",
     category: ""
   });
+  const productCategoryId = getCategoryId(product?.category);
+  const productCategoryName = getCategoryName(product?.category);
 
 useEffect(() => {
   if (product) {
@@ -26,7 +38,7 @@ useEffect(() => {
       name: product.name,
       price: product.price,
       quantity: product.quantity,
-      category: product.category
+      category: getCategoryId(product.category)
     });
   } else {
     setFormData({
@@ -105,11 +117,11 @@ useEffect(() => {
         placeholder={categoriesLoading ? "Loading categories..." : "Select a category"}
         options={[
           ...categories.map((category) => ({
-            value: category.name,
+            value: category._id,
             label: category.name
           })),
-          ...(product?.category && !categories.some((category) => category.name === product.category)
-            ? [{ value: product.category, label: product.category }]
+          ...(productCategoryId && !categories.some((category) => category._id === productCategoryId)
+            ? [{ value: productCategoryId, label: productCategoryName }]
             : [])
         ]}
         error={categoriesError}

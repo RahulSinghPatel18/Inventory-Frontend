@@ -3,6 +3,11 @@ import { create } from "zustand";
 const useUiStore = create((set) => ({
 theme: localStorage.getItem("theme") || "light",
 
+setTheme: (theme) => {
+localStorage.setItem("theme", theme);
+set({ theme });
+},
+
 toggleTheme: () =>
 set((state) => {
 const newTheme = state.theme === "light" ? "dark" : "light";

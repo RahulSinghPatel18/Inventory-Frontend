@@ -1,7 +1,7 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
-import { Package, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 import Layout from "../components/layout/Layout";
 import PageHeader from "../components/common/PageHeader";
@@ -166,7 +166,6 @@ const Products = () => {
         <PageHeader
           title="Products"
           description="Manage and monitor your inventory"
-          icon={Package}
           action={
             <Button
               onClick={() => {
@@ -261,7 +260,7 @@ const Products = () => {
                   {categoriesLoading ? "Loading categories..." : "All categories"}
                 </option>
                 {categories.map((item) => (
-                  <option key={item._id} value={item.name}>
+                  <option key={item._id} value={item._id}>
                     {item.name}
                   </option>
                 ))}
@@ -324,11 +323,15 @@ const Products = () => {
                       </th>
 
                       <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide theme-text-muted">
-                        Price
+                        UNIT PRICE
                       </th>
 
                       <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide theme-text-muted">
                         Stock
+                      </th>
+
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide theme-text-muted">
+                        TOTAL VALUE
                       </th>
 
                       <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide theme-text-muted">
@@ -363,7 +366,7 @@ const Products = () => {
 
                         <td className="px-6 py-4">
                           <span className="inline-flex rounded-full theme-neutral-soft px-3 py-1 text-xs font-medium theme-text-secondary">
-                            {product.category}
+                            {product.category?.name ?? "—"}
                           </span>
                         </td>
 
@@ -387,6 +390,10 @@ const Products = () => {
                             </span>
                           )}
 
+                        </td>
+
+                        <td className="px-6 py-4 font-medium theme-text-primary">
+                          ₹{product.price * product.quantity}
                         </td>
 
                         <td className="px-6 py-4">
@@ -443,7 +450,7 @@ const Products = () => {
                           </p>
 
                           <p className="mt-0.5 text-xs theme-text-muted">
-                            {product.category}
+                            {product.category?.name ?? "—"}
                           </p>
                         </div>
 
@@ -477,7 +484,7 @@ const Products = () => {
 
                       <div className="rounded-lg theme-surface-secondary p-3">
                         <p className="text-xs theme-text-muted">
-                          Price
+                          UNIT PRICE
                         </p>
 
                         <p className="mt-1 font-semibold theme-text-primary">
@@ -492,6 +499,16 @@ const Products = () => {
 
                         <p className="mt-1 font-semibold theme-text-primary">
                           {product.quantity}
+                        </p>
+                      </div>
+
+                      <div className="col-span-2 rounded-lg theme-surface-secondary p-3">
+                        <p className="text-xs theme-text-muted">
+                          TOTAL VALUE
+                        </p>
+
+                        <p className="mt-1 font-semibold theme-text-primary">
+                          ₹{product.price * product.quantity}
                         </p>
                       </div>
 

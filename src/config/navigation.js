@@ -4,7 +4,8 @@ import {
   FolderKanban,
   UserCircle,
   Settings,
-  BarChart3
+  BarChart3,
+  ArrowLeftRight
 } from "lucide-react";
 
 const navigation = [
@@ -17,6 +18,11 @@ const navigation = [
     label: "Products",
     path: "/products",
     icon: Package
+  },
+  {
+    label: "Stock",
+    path: "/stock",
+    icon: ArrowLeftRight
   },
   {
     label: "Categories",
