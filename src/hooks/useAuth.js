@@ -4,6 +4,7 @@ const useAuth = () => {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitializing = useAuthStore((state) => state.isInitializing);
   const isLoading = useAuthStore((state) => state.isLoading);
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
@@ -15,6 +16,7 @@ const useAuth = () => {
     user,
     token,
     isAuthenticated,
+    isInitializing,
     isLoading,
     login,
     logout,

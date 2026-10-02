@@ -26,6 +26,7 @@ const useAuthStore = create((set, get) => ({
   user: null,
   token: initialToken,
   isAuthenticated: !!initialToken,
+  isInitializing: !!initialToken,
   isLoading: !!initialToken,
 
   login: async (loginData) => {
@@ -55,9 +56,24 @@ const useAuthStore = create((set, get) => ({
 
     const token = storage.getToken();
 
-    if (!token) return Promise.resolve();
+    if (!token) {
+      set({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isInitializing: false,
+        isLoading: false
+      });
+      authInitializationRequest = Promise.resolve();
+      return authInitializationRequest;
+    }
 
-    set({ token, isAuthenticated: true, isLoading: true });
+    set({
+      token,
+      isAuthenticated: true,
+      isInitializing: true,
+      isLoading: true
+    });
 
     authInitializationRequest = fetchProfileOnce(set)
       .catch(() => {
@@ -69,8 +85,7 @@ const useAuthStore = create((set, get) => ({
         });
       })
       .finally(() => {
-        set({ isLoading: false });
-        authInitializationRequest = undefined;
+        set({ isLoading: false, isInitializing: false });
       });
 
     return authInitializationRequest;

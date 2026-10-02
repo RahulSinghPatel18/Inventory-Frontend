@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Description, Field, Label, Switch } from "@headlessui/react";
 import {
   ArrowLeft,
@@ -22,7 +22,6 @@ import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import Layout from "../components/layout/Layout";
 import Select from "../components/common/Select";
-import Spinner from "../components/common/Spinner";
 import useAuth from "../hooks/useAuth";
 import useUiStore from "../store/uiStore";
 
@@ -97,32 +96,15 @@ const PreferenceToggle = ({ label, description, checked, onChange }) => (
 );
 
 const Settings = () => {
-  const { user, getProfile, logout } = useAuth();
+  const { user, logout } = useAuth();
   const theme = useUiStore((state) => state.theme);
   const setTheme = useUiStore((state) => state.setTheme);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState(readSettings);
   const [passwordStep, setPasswordStep] = useState(1);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  useEffect(() => {
-    let active = true;
-
-    getProfile()
-      .catch((error) => {
-        toast.error(error.response?.data?.message || "Failed to load account details");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [getProfile]);
 
   const organization = user?.organizationId;
   const organizationId = typeof organization === "string" ? organization : organization?._id;
@@ -164,16 +146,6 @@ const Settings = () => {
     setConfirmPassword("");
     setPasswordStep(1);
   };
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex min-h-[500px] items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -360,6 +332,9 @@ const Settings = () => {
                 </button>
               ))}
             </div>
+            <p className="mt-3 text-xs theme-text-muted">
+              System automatically follows your device’s light or dark appearance.
+            </p>
           </Section>
 
           <Section id="preferences" icon={IndianRupee} title="Preferences" description="Set your default display options">

@@ -1,9 +1,10 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Package, ShieldCheck, ArrowRight, CircleAlert } from "lucide-react";
 
+import useAuth from "../hooks/useAuth";
 import authService from "../services/authService";
 import appConfig from "../config/appConfig";
 
@@ -17,6 +18,7 @@ import {
 
 const Register = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -87,6 +89,10 @@ const Register = () => {
       setIsLoading(false);
     }
   };
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="theme-page-background min-h-dvh p-2 sm:p-3">

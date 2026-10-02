@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Camera, Mail, Shield, Building2, Pencil, Save, X } from "lucide-react";
 import { toast } from "react-toastify";
 
 import Layout from "../components/layout/Layout";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
-import Spinner from "../components/common/Spinner";
 import useAuth from "../hooks/useAuth";
 import { isRequired } from "../utils/validators";
 
@@ -69,8 +68,7 @@ const compressProfileImage = async (file) => {
 };
 
 const Profile = () => {
-  const { user, getProfile, updateProfile, isLoading } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { user, updateProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -80,34 +78,6 @@ const Profile = () => {
   const organizationId = typeof user?.organizationId === "string"
     ? user.organizationId
     : user?.organizationId?._id || "";
-
-  useEffect(() => {
-    let active = true;
-
-    const loadProfile = async () => {
-      try {
-        const data = await getProfile();
-        if (active) {
-          setName(data.user?.name || "");
-          setProfileImage(data.user?.profileImage || "");
-        }
-      } catch (error) {
-        if (active) {
-          toast.error(
-            error.response?.data?.message ||
-            "Failed to load profile"
-          );
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    loadProfile();
-    return () => {
-      active = false;
-    };
-  }, [getProfile]);
 
   const handleImageChange = async (event) => {
     if (!isEditing || saving || isUploading) return;
@@ -170,16 +140,6 @@ const Profile = () => {
     setProfileImage(user?.profileImage || "");
     setIsEditing(false);
   };
-
-  if (loading || isLoading) {
-    return (
-      <Layout>
-        <div className="flex min-h-[500px] items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>

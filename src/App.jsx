@@ -7,11 +7,12 @@ import "react-toastify/dist/ReactToastify.css";
 import useAuth from "./hooks/useAuth";
 import useUiStore from "./store/uiStore";
 import { themeColors } from "./config/theme";
+import Loader from "./components/common/Loader";
 
 
 function App() {
   const theme = useUiStore((state) => state.theme);
-  const { initializeAuth } = useAuth();
+  const { initializeAuth, isInitializing } = useAuth();
   const [systemTheme, setSystemTheme] = useState(() =>
     window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
   );
@@ -27,6 +28,7 @@ function App() {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle("dark", resolvedTheme === "dark");
+    root.style.colorScheme = resolvedTheme;
     Object.entries(themeColors[resolvedTheme] || themeColors.light).forEach(
       ([token, value]) => root.style.setProperty(token, value)
     );
@@ -38,7 +40,7 @@ function App() {
 
   return (
     <>
-      <AppRoutes />
+      {isInitializing ? <Loader /> : <AppRoutes />}
 
       <ToastContainer
         position="top-center"

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Package, ShieldCheck, ArrowRight, CircleAlert } from "lucide-react";
 
@@ -17,7 +17,7 @@ const Login = () => {
   const {
     login,
     getProfile,
-    isLoading
+    isAuthenticated
   } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -75,6 +75,10 @@ const Login = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (isAuthenticated && !isSubmitting) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="theme-page-background min-h-dvh p-2 sm:p-3">
@@ -229,7 +233,7 @@ const Login = () => {
                 onChange={handleChange}
                 placeholder="you@company.com"
                 required
-                disabled={isLoading || isSubmitting}
+                disabled={isSubmitting}
                 error={fieldErrors.email}
               />
 
@@ -241,20 +245,20 @@ const Login = () => {
                 onChange={handleChange}
                 placeholder="Enter your password"
                 required
-                disabled={isLoading || isSubmitting}
+                disabled={isSubmitting}
                 showPasswordToggle
                 error={fieldErrors.password}
               />
 
               <Button
                 type="submit"
-                loading={isLoading || isSubmitting}
+                loading={isSubmitting}
                 loadingText="Signing in..."
                 className="group w-full rounded-xl theme-primary-action-bg py-3 shadow-sm sm:py-3.5"
               >
                 <span>Sign in</span>
 
-                {!isLoading && (
+                {!isSubmitting && (
                   <ArrowRight
                     size={17}
                     className="transition-transform group-hover:translate-x-0.5"

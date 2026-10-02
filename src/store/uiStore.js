@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 const useUiStore = create((set) => ({
-theme: localStorage.getItem("theme") || "light",
+theme: localStorage.getItem("theme") || "system",
 
 setTheme: (theme) => {
 localStorage.setItem("theme", theme);
