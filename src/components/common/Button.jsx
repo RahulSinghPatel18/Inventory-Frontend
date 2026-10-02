@@ -3,6 +3,7 @@ children,
 type = "button",
 variant = "primary",
 loading = false,
+loadingText = "Loading...",
 disabled = false,
 onClick,
 className = ""
@@ -45,7 +46,7 @@ className={`         inline-flex
 )}
 
 
-  {loading ? "Loading..." : children}
+  {loading ? loadingText : children}
 </button>
 
 

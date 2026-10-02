@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Description, Field, Label, Switch } from "@headlessui/react";
 import {
   ArrowLeft,
   Bell,
@@ -9,6 +10,7 @@ import {
   LogOut,
   Monitor,
   Moon,
+  SlidersHorizontal,
   Sun,
   Trash2,
   Users
@@ -33,8 +35,7 @@ const defaultSettings = {
     stockActivity: false
   },
   currency: "INR",
-  dateFormat: "DD/MM/YYYY",
-  itemsPerPage: "10"
+  dateFormat: "DD/MM/YYYY"
 };
 
 const readSettings = () => {
@@ -53,8 +54,19 @@ const readSettings = () => {
   }
 };
 
-const Section = ({ icon: Icon, title, description, children, className = "" }) => (
-  <section className={`rounded-xl border theme-border theme-surface p-5 shadow-sm sm:p-6 ${className}`}>
+const settingsSections = [
+  { id: "profile", label: "Profile", icon: CircleUserRound },
+  { id: "security", label: "Security", icon: KeyRound },
+  { id: "organization", label: "Organization", icon: Building2 },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "appearance", label: "Appearance", icon: Sun },
+  { id: "preferences", label: "Preferences", icon: IndianRupee },
+  { id: "account", label: "Account", icon: LogOut },
+  { id: "danger-zone", label: "Danger zone", icon: Trash2 }
+];
+
+const Section = ({ id, icon: Icon, title, description, children, className = "" }) => (
+  <section id={id} className={`scroll-mt-6 rounded-2xl border theme-border theme-surface p-5 shadow-sm sm:p-6 ${className}`}>
     <div className="mb-5 flex items-start gap-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg theme-primary-soft theme-primary-text">
         <Icon size={19} />
@@ -69,22 +81,19 @@ const Section = ({ icon: Icon, title, description, children, className = "" }) =
 );
 
 const PreferenceToggle = ({ label, description, checked, onChange }) => (
-  <div className="flex items-center justify-between gap-4 border-b theme-border-subtle py-4 last:border-b-0 last:pb-0 first:pt-0">
+  <Field as="div" className="flex items-center justify-between gap-4 border-b theme-border-subtle py-4 last:border-b-0 last:pb-0 first:pt-0">
     <div className="min-w-0">
-      <p className="text-sm font-medium theme-text-primary">{label}</p>
-      <p className="mt-1 text-xs theme-text-muted">{description}</p>
+      <Label className="text-sm font-medium theme-text-primary">{label}</Label>
+      <Description className="mt-1 text-xs theme-text-muted">{description}</Description>
     </div>
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? "theme-primary-bg" : "theme-neutral-soft"}`}
+    <Switch
+      checked={checked}
+      onChange={onChange}
+      className="group relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full theme-neutral-soft transition-colors data-[checked]:theme-primary-bg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-focus-ring)] focus-visible:ring-offset-2"
     >
-      <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-6" : "translate-x-1"}`} />
-    </button>
-  </div>
+      <span className="pointer-events-none inline-block h-5 w-5 translate-x-1 rounded-full bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-200 group-data-[checked]:translate-x-5" />
+    </Switch>
+  </Field>
 );
 
 const Settings = () => {
@@ -168,14 +177,34 @@ const Settings = () => {
 
   return (
     <Layout>
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold theme-text-primary">Settings</h1>
-          <p className="mt-1 text-sm theme-text-muted">Manage your account and workspace preferences</p>
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-6 flex items-center gap-4 rounded-2xl border theme-border theme-surface p-5 shadow-sm sm:p-7">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
+            <SlidersHorizontal size={22} />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider theme-primary-text">Workspace</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight theme-text-primary">Settings</h1>
+            <p className="mt-1 text-sm theme-text-muted">Manage your account, alerts, appearance, and preferences</p>
+          </div>
         </header>
 
-        <div className="grid items-start gap-5 lg:grid-cols-2">
-          <Section icon={CircleUserRound} title="Profile" description="Your StockPro account details">
+        <div className="grid items-start gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-7">
+          <nav aria-label="Settings sections" className="flex gap-2 overflow-x-auto pb-1 lg:sticky lg:top-5 lg:flex-col lg:overflow-visible">
+            {settingsSections.map(({ id, label, icon: Icon }) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className="inline-flex shrink-0 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium theme-text-secondary transition theme-hover-neutral focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus-ring)]"
+              >
+                <Icon size={17} className="shrink-0 theme-text-muted" />
+                {label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="min-w-0 space-y-5">
+          <Section id="profile" icon={CircleUserRound} title="Profile" description="Your StockPro account details">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full theme-primary-bg text-2xl font-semibold text-white">
                 {user?.profileImage ? (
@@ -194,7 +223,7 @@ const Settings = () => {
             </div>
           </Section>
 
-          <Section icon={KeyRound} title="Security" description="Manage your password">
+          <Section id="security" icon={KeyRound} title="Security" description="Manage your password">
             <div className="mb-5 flex items-center gap-3" aria-live="polite">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full theme-primary-bg text-sm font-semibold text-white">
                 {passwordStep}
@@ -268,7 +297,7 @@ const Settings = () => {
             <p className="mt-4 text-xs theme-text-muted">Password verification and updates are not connected yet. This screen will not change your account password.</p>
           </Section>
 
-          <Section icon={Building2} title="Organization" description="Your workspace and access">
+          <Section id="organization" icon={Building2} title="Organization" description="Your workspace and access">
             <dl className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
               <div>
                 <dt className="text-xs theme-text-muted">Organization name</dt>
@@ -290,7 +319,7 @@ const Settings = () => {
             <p className="mt-4 text-xs theme-text-muted">Organization details and member counts are not provided by the current account API.</p>
           </Section>
 
-          <Section icon={Bell} title="Notifications" description="Choose the inventory alerts you want to track">
+          <Section id="notifications" icon={Bell} title="Notifications" description="Choose the inventory alerts you want to track">
             <PreferenceToggle
               label="Low stock"
               description="When an item falls below its reorder level"
@@ -312,7 +341,7 @@ const Settings = () => {
             <p className="mt-4 text-xs theme-text-muted">These preferences are stored on this device; alert delivery is not connected.</p>
           </Section>
 
-          <Section icon={Sun} title="Appearance" description="Choose how StockPro looks on this device">
+          <Section id="appearance" icon={Sun} title="Appearance" description="Choose how StockPro looks on this device">
             <div className="grid grid-cols-3 gap-2" role="group" aria-label="Appearance theme">
               {[
                 { value: "light", label: "Light", icon: Sun },
@@ -333,7 +362,7 @@ const Settings = () => {
             </div>
           </Section>
 
-          <Section icon={IndianRupee} title="Preferences" description="Set your default display options">
+          <Section id="preferences" icon={IndianRupee} title="Preferences" description="Set your default display options">
             <div className="grid gap-4 sm:grid-cols-2">
               <Select
                 label="Currency"
@@ -358,20 +387,13 @@ const Settings = () => {
                   { value: "YYYY-MM-DD", label: "YYYY-MM-DD" }
                 ]}
               />
-              <Select
-                label="Default items per page"
-                name="itemsPerPage"
-                value={settings.itemsPerPage}
-                onChange={(event) => updatePreference("itemsPerPage", event.target.value)}
-                options={[10, 25, 50, 100].map((value) => ({ value: String(value), label: String(value) }))}
-              />
             </div>
             <div className="mt-5 flex justify-end">
               <Button onClick={savePreferences}>Save preferences</Button>
             </div>
           </Section>
 
-          <Section icon={LogOut} title="Account" description="Sign out of your StockPro account">
+          <Section id="account" icon={LogOut} title="Account" description="Sign out of your StockPro account">
             <p className="text-sm theme-text-secondary">You can sign back in at any time with your account credentials.</p>
             <Button variant="outline" onClick={handleLogout} className="mt-4">
               <LogOut size={16} />
@@ -379,7 +401,7 @@ const Settings = () => {
             </Button>
           </Section>
 
-          <Section icon={Trash2} title="Danger zone" description="Permanently remove your account and its data" className="border-[var(--theme-danger)]/40">
+          <Section id="danger-zone" icon={Trash2} title="Danger zone" description="Permanently remove your account and its data" className="border-[var(--theme-danger)]/40">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="max-w-md text-sm theme-text-secondary">Account deletion is not available through the current account API.</p>
               <Button variant="danger" disabled className="shrink-0">
@@ -388,6 +410,7 @@ const Settings = () => {
               </Button>
             </div>
           </Section>
+          </div>
         </div>
       </div>
     </Layout>

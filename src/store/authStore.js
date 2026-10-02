@@ -21,7 +21,7 @@ const fetchProfileOnce = (set) => {
   return profileRequest;
 };
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
   user: null,
   token: storage.getToken(),
   isAuthenticated: !!storage.getToken(),
@@ -36,7 +36,8 @@ const useAuthStore = create((set) => ({
 
       set({
         token: data.token,
-        isAuthenticated: true
+        isAuthenticated: true,
+        user: null
       });
 
       return data;
@@ -74,7 +75,10 @@ const useAuthStore = create((set) => ({
     return authInitializationRequest;
   },
 
-  getProfile: () => fetchProfileOnce(set),
+  getProfile: () => {
+    const user = get().user;
+    return user ? Promise.resolve({ user }) : fetchProfileOnce(set);
+  },
 
   updateProfile: async (profileData) => {
     const data = await authService.updateProfile(profileData);

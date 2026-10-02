@@ -58,7 +58,12 @@ api.interceptors.response.use(
   },
 
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url || "";
+    const isPublicAuthRequest =
+      requestUrl.endsWith("/users/Login") ||
+      requestUrl.endsWith("/users/Register");
+
+    if (error.response?.status === 401 && !isPublicAuthRequest) {
       storage.removeToken();
 
       window.location.href = "/login";

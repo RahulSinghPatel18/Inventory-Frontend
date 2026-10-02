@@ -2,13 +2,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Package, ShieldCheck, ArrowRight } from "lucide-react";
+import { Package, ShieldCheck, ArrowRight, CircleAlert } from "lucide-react";
 
 import authService from "../services/authService";
 import appConfig from "../config/appConfig";
 
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
+import { isRequired, isValidEmail } from "../utils/validators";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -21,10 +22,14 @@ const Register = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
 
+    setFieldErrors((previous) => ({ ...previous, [name]: "" }));
+    setSubmitError("");
     setFormData((previous) => ({
       ...previous,
       [name]: value
@@ -33,12 +38,32 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const errors = {};
+    if (!isRequired(formData.name)) errors.name = "Name is required";
+    if (!isValidEmail(formData.email)) errors.email = "Enter a valid email address";
+    if (!isRequired(formData.organizationName)) {
+      errors.organizationName = "Organization name is required";
+    }
+    if (!isRequired(formData.password)) {
+      errors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      errors.password = "Use at least 8 characters";
+    }
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setSubmitError("");
+      return;
+    }
 
+    setFieldErrors({});
+    setSubmitError("");
     setIsLoading(true);
 
     try {
       await authService.register({
         ...formData,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
         organizationName: formData.organizationName.trim()
       });
 
@@ -49,11 +74,10 @@ const Register = () => {
       navigate("/login");
 
     } catch (error) {
-      const message =
+      setSubmitError(
         error.response?.data?.message ||
-        "Registration failed. Please try again.";
-
-      toast.error(message);
+        "We couldn’t create your account. Please review your details and try again."
+      );
 
     } finally {
       setIsLoading(false);
@@ -198,6 +222,12 @@ const Register = () => {
               onSubmit={handleSubmit}
               className="mt-4 space-y-3 sm:mt-6 sm:space-y-4"
             >
+              {submitError && (
+                <div role="alert" className="flex items-start gap-2.5 rounded-xl border theme-danger-border theme-danger-soft p-3.5 text-sm theme-danger">
+                  <CircleAlert size={18} className="mt-0.5 shrink-0" />
+                  <p>{submitError}</p>
+                </div>
+              )}
 
               <Input
                 label="Full name"
@@ -207,6 +237,7 @@ const Register = () => {
                 placeholder="Enter your name"
                 required
                 disabled={isLoading}
+                error={fieldErrors.name}
               />
 
               <Input
@@ -218,6 +249,7 @@ const Register = () => {
                 placeholder="you@company.com"
                 required
                 disabled={isLoading}
+                error={fieldErrors.email}
               />
 
               <Input
@@ -228,6 +260,7 @@ const Register = () => {
                 placeholder="Enter your organization name"
                 required
                 disabled={isLoading}
+                error={fieldErrors.organizationName}
               />
 
               <Input
@@ -240,11 +273,13 @@ const Register = () => {
                 required
                 disabled={isLoading}
                 showPasswordToggle
+                error={fieldErrors.password}
               />
 
               <Button
                 type="submit"
                 loading={isLoading}
+                loadingText="Creating account..."
                 className="group w-full rounded-xl theme-primary-action-bg py-3 shadow-sm sm:py-3.5"
               >
                 <span>Create account</span>
@@ -285,4 +320,3 @@ const Register = () => {
 };
 
 export default Register;
-

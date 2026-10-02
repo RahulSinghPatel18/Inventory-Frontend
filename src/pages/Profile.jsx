@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Mail, Shield, CalendarDays, Building2, Pencil, Save, X } from "lucide-react";
+import { Camera, Mail, Shield, Building2, Pencil, Save, X } from "lucide-react";
 import { toast } from "react-toastify";
 
 import Layout from "../components/layout/Layout";
@@ -7,6 +7,7 @@ import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import Spinner from "../components/common/Spinner";
 import useAuth from "../hooks/useAuth";
+import { isRequired } from "../utils/validators";
 
 const MAX_PROFILE_IMAGE_DATA_URL_SIZE = 300 * 1024;
 
@@ -71,6 +72,7 @@ const Profile = () => {
   const { user, getProfile, updateProfile, isLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || "");
   const [profileImage, setProfileImage] = useState(user?.profileImage || "");
@@ -108,7 +110,7 @@ const Profile = () => {
   }, [getProfile]);
 
   const handleImageChange = async (event) => {
-    if (!isEditing || saving) return;
+    if (!isEditing || saving || isUploading) return;
 
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -123,11 +125,15 @@ const Profile = () => {
       return;
     }
 
+    setIsUploading(true);
     try {
       const compressedImage = await compressProfileImage(file);
       setProfileImage(compressedImage);
-    } catch {
-      toast.error("Failed to compress image");
+      toast.success("Image ready to save");
+    } catch (error) {
+      toast.error(error.message || "Failed to prepare image");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -137,7 +143,7 @@ const Profile = () => {
 
     const updatedName = name.trim();
 
-    if (!updatedName) {
+    if (!isRequired(updatedName)) {
       toast.error("Name is required");
       return;
     }
@@ -179,224 +185,136 @@ const Profile = () => {
     <Layout>
       <div className="mx-auto max-w-7xl">
         <form onSubmit={handleSubmit}>
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight theme-text-primary sm:text-2xl">
-              Profile
-            </h1>
-
-            <p className="mt-1 text-sm theme-text-muted">
-              View your account information
-            </p>
-          </div>
-          {isEditing ? (
-            <div className="flex shrink-0 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancelEdit}
-                disabled={saving}
-              >
-                <X size={16} />
-                Cancel
-              </Button>
-              <Button type="submit" loading={saving}>
-                <Save size={16} />
-                Save 
-              </Button>
+          <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight theme-text-primary">Profile</h1>
+              <p className="mt-1 text-sm theme-text-muted">Manage your personal and account details</p>
             </div>
-          ) : (
-            <Button type="button" onClick={() => setIsEditing(true)} className="shrink-0">
-              <Pencil size={16} />
-              Edit 
-            </Button>
-          )}
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-3">
-
-          {/* Profile Card */}
-          <div className="rounded-2xl border theme-border theme-surface p-6 shadow-sm transition hover:shadow-md">
-
-            <div className="flex flex-col items-center text-center">
-
-              <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full theme-primary-bg text-3xl font-bold text-white shadow-lg transition-transform duration-200 hover:scale-105">
-                {profileImage ? (
-                  <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
-                ) : (
-                  name?.charAt(0)?.toUpperCase() || "U"
-                )}
-                {isEditing && (
-                  <button
-                    type="button"
-                    onClick={() => imageInputRef.current?.click()}
-                    disabled={saving}
-                    aria-label="Upload profile picture"
-                    title="Upload profile picture"
-                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full theme-primary-action-bg text-white shadow-md disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <Camera size={16} />
-                  </button>
-                )}
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  tabIndex={-1}
-                  disabled={!isEditing || saving}
-                />
+            {isEditing ? (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={saving || isUploading}
+                >
+                  <X size={16} />
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  loading={saving || isUploading}
+                  loadingText={isUploading ? "Preparing image..." : "Updating profile..."}
+                >
+                  <Save size={16} />
+                  Save changes
+                </Button>
               </div>
+            ) : (
+              <Button type="button" onClick={() => setIsEditing(true)}>
+                <Pencil size={16} />
+                Edit profile
+              </Button>
+            )}
+          </header>
 
-              <h2 className="mt-4 text-xl font-bold theme-text-primary">
-                {name || "User"}
-              </h2>
-
-              <p className="mt-1 text-sm theme-text-muted">
-                {user?.email || "No email available"}
-              </p>
-
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full theme-success-soft px-3 py-1.5 text-xs font-semibold capitalize theme-success">
-                <Shield size={13} />
-                {user?.role || "user"}
+          <section className="overflow-hidden rounded-2xl border theme-border theme-surface shadow-sm">
+            <div className="h-24 theme-decoration-muted sm:h-32" aria-hidden="true" />
+            <div className="px-5 pb-6 sm:px-8">
+              <div className="-mt-12 flex flex-col gap-5 sm:-mt-14 sm:flex-row sm:items-end">
+                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4  theme-primary-bg text-3xl font-bold text-white shadow-md sm:h-28 sm:w-28">
+                  {profileImage ? (
+                    <img src={profileImage} alt={`${name || "User"} profile`} className="h-full w-full object-cover" />
+                  ) : (
+                    name?.charAt(0)?.toUpperCase() || "U"
+                  )}
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    tabIndex={-1}
+                    disabled={!isEditing || saving || isUploading}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 pb-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider theme-primary-text">Account profile</p>
+                  <h2 className="mt-1 truncate text-xl font-bold theme-text-primary sm:text-2xl">{name || "User"}</h2>
+                  <p className="mt-1 truncate text-sm theme-text-muted">{user?.email || "No email available"}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 pb-1">
+                  {isEditing && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={saving || isUploading}
+                      loading={isUploading}
+                      loadingText="Preparing..."
+                    >
+                      <Camera size={16} />
+                      Change photo
+                    </Button>
+                  )}
+                  <span className="inline-flex items-center gap-2 rounded-full theme-success-soft px-3 py-2 text-xs font-semibold capitalize theme-success">
+                    <Shield size={14} />
+                    {user?.role || "user"}
+                  </span>
+                </div>
               </div>
-
             </div>
+          </section>
 
-          </div>
-
-          {/* Account Information */}
-          <div className="rounded-2xl border theme-border theme-surface p-6 shadow-sm lg:col-span-2">
-
+          <section className="mt-5 rounded-2xl border theme-border theme-surface p-5 shadow-sm sm:p-8">
             <div className="mb-6">
-
-              <h2 className="text-lg font-semibold theme-text-primary">
-                Account Information
-              </h2>
-
-              <p className="mt-1 text-sm theme-text-muted">
-                Your registered account details
-              </p>
-
+              <h2 className="text-lg font-semibold theme-text-primary">Account details</h2>
+              <p className="mt-1 text-sm theme-text-muted">Information associated with your account</p>
             </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                label="Full name"
+                name="name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Enter your name"
+                required
+                disabled={!isEditing || saving}
+              />
 
-              {/* Full Name */}
-              <div>
-                <Input
-                  label="Full Name"
-                  name="name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Enter your name"
-                  required
-                  disabled={!isEditing || saving}
-                />
-              </div>
-
-              {/* Email */}
-              <div className="theme-profile-field theme-profile-field-info rounded-xl p-4 transition">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-info-soft theme-info">
-                    <Mail size={18} />
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="text-xs theme-text-muted">
-                      Email Address
-                    </p>
-
-                    <p className="mt-1 truncate text-sm font-semibold theme-text-primary">
-                      {user?.email || "Not available"}
-                    </p>
-                  </div>
-
+              <div className="flex min-h-[76px] items-center gap-3 rounded-xl border theme-border-subtle theme-background p-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl theme-info-soft theme-info">
+                  <Mail size={18} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs theme-text-muted">Email address</p>
+                  <p className="mt-1 truncate text-sm font-semibold theme-text-primary">{user?.email || "Not available"}</p>
                 </div>
-
               </div>
 
-              {/* Role */}
-              <div className="theme-profile-field rounded-xl p-4 transition">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-neutral-soft theme-text-secondary">
-                    <Shield size={18} />
-                  </div>
-
-                  <div>
-                    <p className="text-xs theme-text-muted">
-                      Account Role
-                    </p>
-
-                    <p className="mt-1 text-sm font-semibold capitalize theme-text-primary">
-                      {user?.role || "user"}
-                    </p>
-                  </div>
-
+              <div className="flex min-h-[76px] items-center gap-3 rounded-xl border theme-border-subtle theme-background p-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl theme-neutral-soft theme-text-secondary">
+                  <Shield size={18} />
+                </span>
+                <div>
+                  <p className="text-xs theme-text-muted">Account role</p>
+                  <p className="mt-1 text-sm font-semibold capitalize theme-text-primary">{user?.role || "user"}</p>
                 </div>
-
               </div>
 
-              {/* Status */}
-              <div className="theme-profile-field rounded-xl p-4 transition">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-success-soft theme-success">
-                    <CalendarDays size={18} />
-                  </div>
-
-                  <div>
-                    <p className="text-xs theme-text-muted">
-                      Account Status
-                    </p>
-
-                    <p className="mt-1 flex items-center gap-2 text-sm font-semibold theme-text-primary">
-                      <span className="h-2 w-2 rounded-full theme-primary-bg" />
-                      Active
-                    </p>
-                  </div>
-
+              <div className="flex min-h-[76px] items-center gap-3 rounded-xl border theme-border-subtle theme-background p-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
+                  <Building2 size={18} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs theme-text-muted">Organization ID</p>
+                  <p className="mt-1 break-all text-sm font-semibold theme-text-primary">{organizationId || "Not available"}</p>
                 </div>
-
               </div>
-
-              {/* Organization */}
-              <div className="theme-profile-field rounded-xl p-4 transition">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
-                    <Building2 size={18} />
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="text-xs theme-text-muted">
-                      Organization ID
-                    </p>
-
-                    <p className="mt-1 break-all text-sm font-semibold theme-text-primary">
-                      {organizationId || "Not available"}
-                    </p>
-                  </div>
-
-                </div>
-
-              </div>
-
-              </div>
-
-          </div>
-
-        </div>
+            </div>
+          </section>
         </form>
-
       </div>
     </Layout>
   );

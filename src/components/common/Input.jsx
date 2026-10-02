@@ -12,6 +12,7 @@ error = "",
 required = false,
 disabled = false,
 min,
+step,
 showSearchIcon = false,
 showPasswordToggle = false
 }) => {
@@ -47,6 +48,7 @@ return ( <div className="w-full">
       required={required}
       disabled={disabled}
       min={min}
+      step={step}
       className={`
         theme-input w-full rounded-xl border px-4 py-3
         text-sm outline-none transition-all duration-200

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import categoryService from "../services/categoryService";
 
-const useCategories = (params = { page: 1, limit: 100 }) => {
-  const { search, sort, page, limit } = params;
+const useCategories = (params = {}) => {
+  const { search, sort, page } = params;
   const [categories, setCategories] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,18 +17,11 @@ const useCategories = (params = { page: 1, limit: 100 }) => {
         setLoading(true);
         setError("");
 
-        const data = await categoryService.getCategories({ search, sort, page, limit });
+        const data = await categoryService.getCategories({ search, sort, page });
 
         if (active) {
-          setCategories(data.categories || []);
-          setPagination({
-            page: data.page,
-            limit: data.limit,
-            totalCategories: data.totalCategories,
-            totalPages: data.totalPages,
-            hasNextPage: data.hasNextPage,
-            hasPreviousPage: data.hasPreviousPage
-          });
+          setCategories(data.categories);
+          setPagination(data);
         }
       } catch (requestError) {
         if (active) {
@@ -48,7 +41,7 @@ const useCategories = (params = { page: 1, limit: 100 }) => {
     return () => {
       active = false;
     };
-  }, [reloadKey, search, sort, page, limit]);
+  }, [reloadKey, search, sort, page]);
 
   return {
     categories,

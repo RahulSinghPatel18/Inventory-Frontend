@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 import Input from "../common/Input";
 import Button from "../common/Button";
 import Select from "../common/Select";
+import { isPositiveNumber, isRequired } from "../../utils/validators";
 
 const getCategoryId = (category) =>
   typeof category === "object" && category !== null
@@ -14,6 +16,13 @@ const getCategoryName = (category) =>
     ? category.name ?? ""
     : category ?? "";
 
+const getInitialFormData = (product) => ({
+  name: product?.name ?? "",
+  price: product?.price ?? "",
+  quantity: product?.quantity ?? "",
+  category: getCategoryId(product?.category)
+});
+
 const ProductForm = ({
   product,
   onSubmit,
@@ -23,32 +32,9 @@ const ProductForm = ({
   categoriesError = "",
   onRetryCategories
 }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    quantity: "",
-    category: ""
-  });
+  const [formData, setFormData] = useState(() => getInitialFormData(product));
   const productCategoryId = getCategoryId(product?.category);
   const productCategoryName = getCategoryName(product?.category);
-
-useEffect(() => {
-  if (product) {
-    setFormData({
-      name: product.name,
-      price: product.price,
-      quantity: product.quantity,
-      category: getCategoryId(product.category)
-    });
-  } else {
-    setFormData({
-      name: "",
-      price: "",
-      quantity: "",
-      category: ""
-    });
-  }
-}, [product]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -61,11 +47,35 @@ useEffect(() => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    const name = formData.name.trim();
+    const price = Number(formData.price);
+    const quantity = Number(formData.quantity);
+
+    if (!isRequired(name)) {
+      toast.error("Product name is required");
+      return;
+    }
+    if (!isRequired(formData.price) || !isPositiveNumber(price)) {
+      toast.error("Enter a valid price of 0 or more");
+      return;
+    }
+    if (
+      !isRequired(formData.quantity) ||
+      !Number.isInteger(quantity) ||
+      quantity < 0
+    ) {
+      toast.error("Enter a whole-number quantity of 0 or more");
+      return;
+    }
+    if (!isRequired(formData.category)) {
+      toast.error("Select a category");
+      return;
+    }
 
     onSubmit({
-      name: formData.name,
-      price: Number(formData.price),
-      quantity: Number(formData.quantity),
+      name,
+      price,
+      quantity,
       category: formData.category
     });
   };
@@ -90,6 +100,7 @@ useEffect(() => {
         label="Price"
         name="price"
         type="number"
+        step="any"
         value={formData.price}
         onChange={handleChange}
         placeholder="Enter price"
@@ -105,6 +116,7 @@ useEffect(() => {
         onChange={handleChange}
         placeholder="Enter quantity"
         min={0}
+        step={1}
         required
         disabled={loading}
       />
@@ -146,6 +158,7 @@ useEffect(() => {
       <Button
         type="submit"
         loading={loading}
+        loadingText={product ? "Updating product..." : "Saving product..."}
         className="w-full"
       >
         {product ? "Update " : "Create "}

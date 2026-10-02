@@ -14,8 +14,7 @@ import Spinner from "../components/common/Spinner";
 import Pagination from "../components/common/Pagination";
 import categoryService from "../services/categoryService";
 import useCategories from "../hooks/useCategories";
-
-const PAGE_LIMIT = 10;
+import { isRequired } from "../utils/validators";
 
 const Categories = () => {
   const [search, setSearch] = useState("");
@@ -25,8 +24,7 @@ const Categories = () => {
   const { categories, pagination, loading, error, refetch } = useCategories({
     search: debouncedSearch,
     sort,
-    page,
-    limit: PAGE_LIMIT
+    page
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -39,7 +37,7 @@ const Categories = () => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [search]);
@@ -50,19 +48,10 @@ const Categories = () => {
     setIsModalOpen(true);
   };
 
-  const openEditModal = async (category) => {
-    try {
-      const data = await categoryService.getCategoryById(category._id);
-      const categoryDetails = data.category;
-
-      setSelectedCategory(categoryDetails);
-      setCategoryName(categoryDetails.name);
-      setIsModalOpen(true);
-    } catch (requestError) {
-      toast.error(
-        requestError.response?.data?.message || "Failed to load category details"
-      );
-    }
+  const openEditModal = (category) => {
+    setSelectedCategory(category);
+    setCategoryName(category.name);
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
@@ -75,7 +64,7 @@ const Categories = () => {
     event.preventDefault();
 
     const name = categoryName.trim();
-    if (!name) {
+    if (!isRequired(name)) {
       toast.error("Category name is required");
       return;
     }
@@ -249,7 +238,12 @@ const Categories = () => {
             required
             disabled={saving}
           />
-          <Button type="submit" loading={saving} className="w-full">
+          <Button
+            type="submit"
+            loading={saving}
+            loadingText={selectedCategory ? "Updating category..." : "Saving category..."}
+            className="w-full"
+          >
             {selectedCategory ? "Update Category" : "Create Category"}
           </Button>
         </form>

@@ -2,13 +2,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Package, ShieldCheck, ArrowRight } from "lucide-react";
+import { Package, ShieldCheck, ArrowRight, CircleAlert } from "lucide-react";
 
 import useAuth from "../hooks/useAuth";
 import appConfig from "../config/appConfig";
 
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
+import { isRequired, isValidEmail } from "../utils/validators";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,6 +19,9 @@ const Login = () => {
     getProfile,
     isLoading
   } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -27,6 +31,8 @@ const Login = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
 
+    setFieldErrors((previous) => ({ ...previous, [name]: "" }));
+    setSubmitError("");
     setFormData((previous) => ({
       ...previous,
       [name]: value
@@ -35,20 +41,38 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const errors = {};
+    if (!isValidEmail(formData.email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!isRequired(formData.password)) {
+      errors.password = "Password is required";
+    }
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      setSubmitError("");
+      return;
+    }
+    setFieldErrors({});
+    setSubmitError("");
+    setIsSubmitting(true);
 
     try {
-      await login(formData);
+      await login({ ...formData, email: formData.email.trim() });
       await getProfile();
 
       toast.success("Login successful");
 
       navigate("/dashboard");
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        "Login failed. Please try again.";
-
-      toast.error(message);
+      const message = error.response?.data?.message || "";
+      setSubmitError(
+        error.response?.status === 401 || message.toLowerCase().includes("invalid email or password")
+          ? "Email or password is incorrect. Check your details and try again."
+          : message || "We couldn’t sign you in. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -190,6 +214,12 @@ const Login = () => {
               onSubmit={handleSubmit}
               className="mt-4 space-y-3 sm:mt-6 sm:space-y-4"
             >
+              {submitError && (
+                <div role="alert" className="flex items-start gap-2.5 rounded-xl border theme-danger-border theme-danger-soft p-3.5 text-sm theme-danger">
+                  <CircleAlert size={18} className="mt-0.5 shrink-0" />
+                  <p>{submitError}</p>
+                </div>
+              )}
 
               <Input
                 label="Email address"
@@ -199,7 +229,8 @@ const Login = () => {
                 onChange={handleChange}
                 placeholder="you@company.com"
                 required
-                disabled={isLoading}
+                disabled={isLoading || isSubmitting}
+                error={fieldErrors.email}
               />
 
               <Input
@@ -210,13 +241,15 @@ const Login = () => {
                 onChange={handleChange}
                 placeholder="Enter your password"
                 required
-                disabled={isLoading}
+                disabled={isLoading || isSubmitting}
                 showPasswordToggle
+                error={fieldErrors.password}
               />
 
               <Button
                 type="submit"
-                loading={isLoading}
+                loading={isLoading || isSubmitting}
+                loadingText="Signing in..."
                 className="group w-full rounded-xl theme-primary-action-bg py-3 shadow-sm sm:py-3.5"
               >
                 <span>Sign in</span>
@@ -257,4 +290,3 @@ const Login = () => {
 };
 
 export default Login;
-

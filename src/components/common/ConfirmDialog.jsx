@@ -34,6 +34,7 @@ const ConfirmDialog = ({
           variant="danger"
           onClick={onConfirm}
           loading={loading}
+          loadingText="Deleting..."
         >
           Confirm
         </Button>

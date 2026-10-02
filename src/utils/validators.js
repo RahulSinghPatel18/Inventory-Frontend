@@ -1,11 +1,18 @@
 export const isRequired = (value) => {
-  return value !== undefined && value !== null && value.trim() !== "";
+  return value !== undefined && value !== null && String(value).trim() !== "";
 };
 
 export const isValidEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 };
 
 export const isPositiveNumber = (value) => {
-  return Number(value) >= 0;
+  if (!isRequired(value)) return false;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0;
+};
+
+export const isPositiveInteger = (value) => {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0;
 };
