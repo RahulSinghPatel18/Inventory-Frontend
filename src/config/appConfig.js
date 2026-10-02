@@ -1,5 +1,5 @@
 const appConfig = {
-  appName: "InventoryStack",
+  appName: "MyStockHub",
   logo: "/logo.svg",
   tagline: "Smart Inventory Control"
 };
