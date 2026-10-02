@@ -5,6 +5,7 @@ import { storage } from "../utils/storage";
 
 let profileRequest;
 let authInitializationRequest;
+const initialToken = storage.getToken();
 
 const fetchProfileOnce = (set) => {
   if (!profileRequest) {
@@ -23,9 +24,9 @@ const fetchProfileOnce = (set) => {
 
 const useAuthStore = create((set, get) => ({
   user: null,
-  token: storage.getToken(),
-  isAuthenticated: !!storage.getToken(),
-  isLoading: false,
+  token: initialToken,
+  isAuthenticated: !!initialToken,
+  isLoading: !!initialToken,
 
   login: async (loginData) => {
     set({ isLoading: true });
