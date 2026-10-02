@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FolderKanban, Pencil, Plus, Trash2 } from "lucide-react";
 
@@ -11,17 +11,38 @@ import ErrorState from "../components/common/ErrorState";
 import Input from "../components/common/Input";
 import Modal from "../components/common/Modal";
 import Spinner from "../components/common/Spinner";
+import Pagination from "../components/common/Pagination";
 import categoryService from "../services/categoryService";
 import useCategories from "../hooks/useCategories";
 
+const PAGE_LIMIT = 10;
+
 const Categories = () => {
-  const { categories, loading, error, refetch } = useCategories();
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [sort, setSort] = useState("oldest");
+  const [page, setPage] = useState(1);
+  const { categories, pagination, loading, error, refetch } = useCategories({
+    search: debouncedSearch,
+    sort,
+    page,
+    limit: PAGE_LIMIT
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryName, setCategoryName] = useState("");
   const [saving, setSaving] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const openCreateModal = () => {
     setSelectedCategory(null);
@@ -71,6 +92,7 @@ const Categories = () => {
       }
 
       closeModal();
+      setPage(1);
       refetch();
     } catch (requestError) {
       toast.error(requestError.response?.data?.message || "Failed to save category");
@@ -85,6 +107,7 @@ const Categories = () => {
       await categoryService.deleteCategory(categoryToDelete._id);
       toast.success("Category deleted successfully");
       setCategoryToDelete(null);
+      setPage(1);
       refetch();
     } catch (requestError) {
       toast.error(requestError.response?.data?.message || "Failed to delete category");
@@ -108,6 +131,29 @@ const Categories = () => {
         />
 
         <div className="overflow-hidden rounded-2xl border theme-border theme-surface shadow-sm">
+          <div className="flex flex-col gap-3 border-b theme-border-subtle p-5 sm:flex-row sm:items-center sm:justify-between">
+            <Input
+              name="categorySearch"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search categories..."
+              showSearchIcon
+            />
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value);
+                setPage(1);
+              }}
+              aria-label="Sort categories"
+              className="theme-input w-full rounded-xl border px-4 py-3 text-sm outline-none sm:w-52"
+            >
+              <option value="name_asc">Name: A to Z</option>
+              <option value="name_desc">Name: Z to A</option>
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+          </div>
           {loading ? (
             <div className="flex min-h-[300px] items-center justify-center">
               <Spinner size="lg" />
@@ -116,8 +162,10 @@ const Categories = () => {
             <ErrorState message={error} onRetry={refetch} />
           ) : categories.length === 0 ? (
             <EmptyState
-              title="No categories yet"
-              message="Create a category to organize your products."
+              title={debouncedSearch ? "No matching categories" : "No categories yet"}
+              message={debouncedSearch
+                ? "Try adjusting your search."
+                : "Create a category to organize your products."}
               icon={FolderKanban}
               action={<Button onClick={openCreateModal}>Add Category</Button>}
               className="min-h-[360px]"
@@ -173,6 +221,15 @@ const Categories = () => {
                 </tbody>
               </table>
             </div>
+          )}
+          {!loading && !error && pagination && categories.length > 0 && (
+            <Pagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              onPageChange={setPage}
+            />
           )}
         </div>
       </div>

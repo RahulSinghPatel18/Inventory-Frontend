@@ -3,6 +3,24 @@ import { create } from "zustand";
 import authService from "../services/authService";
 import { storage } from "../utils/storage";
 
+let profileRequest;
+let authInitializationRequest;
+
+const fetchProfileOnce = (set) => {
+  if (!profileRequest) {
+    profileRequest = authService.getProfile()
+      .then((data) => {
+        set({ user: data.user });
+        return data;
+      })
+      .finally(() => {
+        profileRequest = undefined;
+      });
+  }
+
+  return profileRequest;
+};
+
 const useAuthStore = create((set) => ({
   user: null,
   token: storage.getToken(),
@@ -28,33 +46,35 @@ const useAuthStore = create((set) => ({
   },
 
   // refresh ke time kam krta hai initializeAuth
-  initializeAuth: async () => {
+  initializeAuth: () => {
+    if (authInitializationRequest) {
+      return authInitializationRequest;
+    }
+
     const token = storage.getToken();
 
-    if (!token) return;
+    if (!token) return Promise.resolve();
 
     set({ token, isAuthenticated: true, isLoading: true });
 
-    try {
-      const data = await authService.getProfile();
-      set({ user: data.user });
-    } catch {
-      storage.removeToken();
-      set({
-        user: null,
-        token: null,
-        isAuthenticated: false
+    authInitializationRequest = fetchProfileOnce(set)
+      .catch(() => {
+        storage.removeToken();
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false
+        });
+      })
+      .finally(() => {
+        set({ isLoading: false });
+        authInitializationRequest = undefined;
       });
-    } finally {
-      set({ isLoading: false });
-    }
+
+    return authInitializationRequest;
   },
 
-  getProfile: async () => {
-    const data = await authService.getProfile();
-    set({ user: data.user });
-    return data;
-  },
+  getProfile: () => fetchProfileOnce(set),
 
   updateProfile: async (profileData) => {
     const data = await authService.updateProfile(profileData);
@@ -71,4 +91,3 @@ const useAuthStore = create((set) => ({
 }));
 
 export default useAuthStore;
-

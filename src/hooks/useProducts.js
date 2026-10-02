@@ -1,18 +1,26 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import productService from "../services/productService";
 
 const useProducts = (params = {}) => {
+  const { name, category, sort, page, limit } = params;
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const getProducts = async (customParams = params) => {
+  const getProducts = useCallback(async (
+    customParams = { name, category, sort, page, limit },
+    isActive = () => true
+  ) => {
+    if (!isActive()) return;
+
     try {
       setLoading(true);
       setError("");
 
       const data = await productService.getProducts(customParams);
+
+      if (!isActive()) return;
 
       setProducts(data.products);
 
@@ -25,23 +33,29 @@ const useProducts = (params = {}) => {
         hasPreviousPage: data.hasPreviousPage
       });
     } catch (error) {
-      setError(
-        error.response?.data?.message ||
-        "Failed to fetch products"
-      );
+      if (isActive()) {
+        setError(
+          error.response?.data?.message ||
+          "Failed to fetch products"
+        );
+      }
     } finally {
-      setLoading(false);
+      if (isActive()) setLoading(false);
     }
-  };
+  }, [name, category, sort, page, limit]);
 
   useEffect(() => {
-    getProducts(params);
-  }, [
-    params.name,
-    params.category,
-    params.sort,
-    params.page
-  ]);
+    let active = true;
+
+    Promise.resolve().then(() => getProducts(
+      { name, category, sort, page, limit },
+      () => active
+    ));
+
+    return () => {
+      active = false;
+    };
+  }, [getProducts, name, category, sort, page, limit]);
 
   return {
     products,

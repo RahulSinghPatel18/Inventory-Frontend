@@ -1,7 +1,15 @@
 import useAuthStore from "../store/authStore";
 
 const useAuth = () => {
-  const { user,token,isAuthenticated,isLoading,login,logout,getProfile,updateProfile,initializeAuth} = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((state) => state.logout);
+  const getProfile = useAuthStore((state) => state.getProfile);
+  const updateProfile = useAuthStore((state) => state.updateProfile);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   return {
     user,

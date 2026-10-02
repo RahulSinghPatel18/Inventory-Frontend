@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { get } from "./api";
 
 const categoryService = {
   createCategory: async (categoryData) => {
@@ -7,14 +7,20 @@ const categoryService = {
     return response.data;
   },
 
-  getCategories: async () => {
-    const response = await api.get("/categories/GetAll");
+  getCategories: async (params = {}) => {
+    const response = await get("/categories/GetAll", { params });
+
+    return response.data;
+  },
+
+  getCategoryStats: async () => {
+    const response = await get("/categories/Stats");
 
     return response.data;
   },
 
   getCategoryById: async (id) => {
-    const response = await api.get(`/categories/GetById/${id}`);
+    const response = await get(`/categories/GetById/${id}`);
 
     return response.data;
   },

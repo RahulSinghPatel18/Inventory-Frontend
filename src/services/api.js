@@ -10,6 +10,32 @@ const api = axios.create({
   }
 });
 
+const inFlightGetRequests = new Map();
+
+export const get = (url, config = {}) => {
+  const requestConfig = { ...config, method: "get", url };
+  const requestUrl = api.getUri(requestConfig);
+  const [path, query = ""] = requestUrl.split("?");
+  const normalizedQuery = query
+    .split("&")
+    .filter(Boolean)
+    .sort()
+    .join("&");
+  const requestKey = `${storage.getToken() || ""}:${path}?${normalizedQuery}`;
+  const existingRequest = inFlightGetRequests.get(requestKey);
+
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const request = api.get(url, config).finally(() => {
+    inFlightGetRequests.delete(requestKey);
+  });
+  inFlightGetRequests.set(requestKey, request);
+
+  return request;
+};
+
 api.interceptors.request.use(
   (config) => {
     const token = storage.getToken();

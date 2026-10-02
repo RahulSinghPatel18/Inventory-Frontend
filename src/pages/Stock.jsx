@@ -40,6 +40,8 @@ const Stock = () => {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyPagination, setHistoryPagination] = useState({
     page: 1,
+    limit: PAGE_LIMIT,
+    totalHistory: 0,
     totalPages: 0,
     hasNextPage: false,
     hasPreviousPage: false
@@ -48,11 +50,17 @@ const Stock = () => {
     productId: "",
     type: "",
     startDate: "",
-    endDate: ""
+    endDate: "",
+    search: "",
+    sort: "newest"
   });
   const [historyFilters, setHistoryFilters] = useState(historyDraft);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [outOfStockProducts, setOutOfStockProducts] = useState([]);
+  const [lowStockPagination, setLowStockPagination] = useState(null);
+  const [outOfStockPagination, setOutOfStockPagination] = useState(null);
+  const [lowStockPage, setLowStockPage] = useState(1);
+  const [outOfStockPage, setOutOfStockPage] = useState(1);
   const [alertsLoading, setAlertsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -92,12 +100,28 @@ const Stock = () => {
       try {
         setAlertsLoading(true);
         const [lowStockData, outOfStockData] = await Promise.all([
-          stockService.getLowStock(),
-          stockService.getOutOfStock()
+          stockService.getLowStock({ page: lowStockPage, limit: PAGE_LIMIT }),
+          stockService.getOutOfStock({ page: outOfStockPage, limit: PAGE_LIMIT })
         ]);
         if (active) {
           setLowStockProducts(lowStockData.products || []);
           setOutOfStockProducts(outOfStockData.products || []);
+          setLowStockPagination({
+            page: lowStockData.page,
+            limit: lowStockData.limit,
+            totalProducts: lowStockData.totalProducts,
+            totalPages: lowStockData.totalPages,
+            hasNextPage: lowStockData.hasNextPage,
+            hasPreviousPage: lowStockData.hasPreviousPage
+          });
+          setOutOfStockPagination({
+            page: outOfStockData.page,
+            limit: outOfStockData.limit,
+            totalProducts: outOfStockData.totalProducts,
+            totalPages: outOfStockData.totalPages,
+            hasNextPage: outOfStockData.hasNextPage,
+            hasPreviousPage: outOfStockData.hasPreviousPage
+          });
         }
       } catch (error) {
         if (active) {
@@ -112,7 +136,7 @@ const Stock = () => {
     return () => {
       active = false;
     };
-  }, [refreshKey]);
+  }, [refreshKey, lowStockPage, outOfStockPage]);
 
   useEffect(() => {
     if (!selectedProductId) {
@@ -159,6 +183,8 @@ const Stock = () => {
           setHistory(data.history || []);
           setHistoryPagination({
             page: data.page,
+            limit: data.limit,
+            totalHistory: data.totalHistory,
             totalPages: data.totalPages,
             hasNextPage: data.hasNextPage,
             hasPreviousPage: data.hasPreviousPage
@@ -216,11 +242,14 @@ const Stock = () => {
   const visibleAlerts = activeTab === "low"
     ? lowStockProducts
     : outOfStockProducts;
+  const visibleAlertPagination = activeTab === "low"
+    ? lowStockPagination
+    : outOfStockPagination;
 
   const tabs = [
     { id: "history", label: "History", count: null, icon: Clock3 },
-    { id: "low", label: "Low stock", count: lowStockProducts.length, icon: TrendingDown },
-    { id: "out", label: "Out of stock", count: outOfStockProducts.length, icon: PackageX }
+    { id: "low", label: "Low stock", count: lowStockPagination?.totalProducts ?? 0, icon: TrendingDown },
+    { id: "out", label: "Out of stock", count: outOfStockPagination?.totalProducts ?? 0, icon: PackageX }
   ];
 
   return (
@@ -338,7 +367,7 @@ const Stock = () => {
 
           {activeTab === "history" ? (
             <>
-              <form onSubmit={applyHistoryFilters} className="grid gap-3 border-b theme-border-subtle p-4 sm:grid-cols-2 lg:grid-cols-5">
+              <form onSubmit={applyHistoryFilters} className="grid gap-3 border-b theme-border-subtle p-4 sm:grid-cols-2 lg:grid-cols-7">
                 <div className="w-full">
                   <label htmlFor="historyProductId" className="mb-1.5 block text-sm font-semibold theme-text-primary">
                     Product
@@ -384,6 +413,30 @@ const Stock = () => {
                   value={historyDraft.endDate}
                   onChange={(event) => setHistoryDraft((draft) => ({ ...draft, endDate: event.target.value }))}
                 />
+                <Input
+                  label="Search product"
+                  name="historySearch"
+                  value={historyDraft.search}
+                  onChange={(event) => setHistoryDraft((draft) => ({ ...draft, search: event.target.value }))}
+                  placeholder="Product name"
+                  showSearchIcon
+                />
+                <div className="w-full">
+                  <label htmlFor="historySort" className="mb-1.5 block text-sm font-semibold theme-text-primary">
+                    Sort by
+                  </label>
+                  <select
+                    id="historySort"
+                    value={historyDraft.sort}
+                    onChange={(event) => setHistoryDraft((draft) => ({ ...draft, sort: event.target.value }))}
+                    className="theme-input h-[46px] w-full rounded-xl border px-4 py-3 text-sm outline-none"
+                  >
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="quantity_desc">Quantity: high to low</option>
+                    <option value="quantity_asc">Quantity: low to high</option>
+                  </select>
+                </div>
                 <Button type="submit" variant="primary" className="h-[46px] w-full self-end py-0">
                   <SlidersHorizontal size={16} />
                   Apply filters
@@ -469,6 +522,13 @@ const Stock = () => {
                     ))}
                   </tbody>
                 </table>
+                <Pagination
+                  page={visibleAlertPagination.page}
+                  totalPages={visibleAlertPagination.totalPages}
+                  hasNextPage={visibleAlertPagination.hasNextPage}
+                  hasPreviousPage={visibleAlertPagination.hasPreviousPage}
+                  onPageChange={activeTab === "low" ? setLowStockPage : setOutOfStockPage}
+                />
               </div>
             )
           )}

@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { get } from "./api";
 
 const stockService = {
   stockIn: async (payload) => {
@@ -12,22 +12,22 @@ const stockService = {
   },
 
   getHistory: async (params = {}) => {
-    const response = await api.get("/stock/History", { params });
+    const response = await get("/stock/History", { params });
     return response.data;
   },
 
-  getLowStock: async () => {
-    const response = await api.get("/stock/LowStock");
+  getLowStock: async (params = {}) => {
+    const response = await get("/stock/LowStock", { params });
     return response.data;
   },
 
-  getOutOfStock: async () => {
-    const response = await api.get("/stock/OutOfStock");
+  getOutOfStock: async (params = {}) => {
+    const response = await get("/stock/OutOfStock", { params });
     return response.data;
   },
 
   getSummary: async (productId) => {
-    const response = await api.get("/stock/Summary", {
+    const response = await get("/stock/Summary", {
       params: { productId }
     });
     return response.data;

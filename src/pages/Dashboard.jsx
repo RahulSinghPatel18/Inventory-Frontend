@@ -23,8 +23,10 @@ import {
 } from "recharts";
 
 import Layout from "../components/layout/Layout";
+import Button from "../components/common/Button";
 import Spinner from "../components/common/Spinner";
 import useProducts from "../hooks/useProducts";
+import categoryService from "../services/categoryService";
 import productService from "../services/productService";
 
 const Dashboard = () => {
@@ -43,32 +45,83 @@ const Dashboard = () => {
 
   const [statsLoading, setStatsLoading] = React.useState(true);
   const [statsError, setStatsError] = React.useState("");
+  const [categoryData, setCategoryData] = React.useState([]);
+  const [categoryLoading, setCategoryLoading] = React.useState(true);
+  const [categoryError, setCategoryError] = React.useState("");
+  const [categoryRefresh, setCategoryRefresh] = React.useState(0);
 
   React.useEffect(() => {
+    let active = true;
+
     const fetchStats = async () => {
       try {
         const response = await productService.getProductStats();
         const data = response?.stats ?? response?.data ?? response;
 
-        setStats({
-          totalProducts: Number(data?.totalProducts) || 0,
-          totalStock: Number(data?.totalStock) || 0,
-          totalInventoryValue: Number(data?.totalInventoryValue) || 0,
-          lowStockProducts: Number(data?.lowStockProducts) || 0,
-          outOfStockProducts: Number(data?.outOfStockProducts) || 0
-        });
+        if (active) {
+          setStats({
+            totalProducts: Number(data?.totalProducts) || 0,
+            totalStock: Number(data?.totalStock) || 0,
+            totalInventoryValue: Number(data?.totalInventoryValue) || 0,
+            lowStockProducts: Number(data?.lowStockProducts) || 0,
+            outOfStockProducts: Number(data?.outOfStockProducts) || 0
+          });
+        }
       } catch (error) {
         console.error("Failed to fetch product stats:", error);
-        setStatsError(
-          error.response?.data?.message || "Unable to load inventory statistics."
-        );
+        if (active) {
+          setStatsError(
+            error.response?.data?.message || "Unable to load inventory statistics."
+          );
+        }
       } finally {
-        setStatsLoading(false);
+        if (active) setStatsLoading(false);
       }
     };
 
     fetchStats();
+
+    return () => {
+      active = false;
+    };
   }, []);
+
+  React.useEffect(() => {
+    let active = true;
+
+    const fetchCategoryStats = async () => {
+      setCategoryLoading(true);
+      setCategoryError("");
+
+      try {
+        const response = await categoryService.getCategoryStats();
+        if (!Array.isArray(response?.categories)) {
+          throw new Error("Invalid category statistics response.");
+        }
+
+        if (active) {
+          setCategoryData(response.categories);
+        }
+      } catch (error) {
+        console.error("Failed to fetch category stats:", error);
+        if (active) {
+          setCategoryError(
+            error.response?.data?.message || "Unable to load category statistics."
+          );
+        }
+      } finally {
+        if (active) {
+          setCategoryLoading(false);
+        }
+      }
+    };
+
+    fetchCategoryStats();
+
+    return () => {
+      active = false;
+    };
+  }, [categoryRefresh]);
 
   const loading = productsLoading || statsLoading;
 
@@ -78,25 +131,6 @@ const Dashboard = () => {
 
   const outOfStockProducts = products.filter(
     (product) => product.quantity === 0
-  );
-
-  const categoryMap = {};
-
-  products.forEach((product) => {
-    const categoryName = product.category?.name ?? product.category;
-
-    if (!categoryMap[categoryName]) {
-      categoryMap[categoryName] = 0;
-    }
-
-    categoryMap[categoryName] += product.quantity;
-  });
-
-  const categoryData = Object.entries(categoryMap).map(
-    ([name, stock]) => ({
-      name,
-      stock
-    })
   );
 
   const stockData = [
@@ -244,7 +278,22 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                {categoryData.length === 0 ? (
+                {categoryLoading ? (
+                  <div className="flex h-[280px] items-center justify-center" role="status">
+                    <Spinner />
+                    <span className="sr-only">Loading category statistics</span>
+                  </div>
+                ) : categoryError ? (
+                  <div className="flex h-[280px] flex-col items-center justify-center gap-3 text-center" role="alert">
+                    <p className="text-sm theme-text-muted">{categoryError}</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCategoryRefresh((refresh) => refresh + 1)}
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                ) : categoryData.length === 0 ? (
                   <div className="flex h-[280px] items-center justify-center text-sm theme-text-muted">
                     No category data available
                   </div>
@@ -269,7 +318,7 @@ const Dashboard = () => {
                         />
 
                         <XAxis
-                          dataKey="name"
+                          dataKey="categoryName"
                           axisLine={false}
                           tickLine={false}
                           tick={{
@@ -301,7 +350,7 @@ const Dashboard = () => {
                         />
 
                         <Bar
-                          dataKey="stock"
+                          dataKey="totalStock"
                           fill="var(--theme-primary)"
                           radius={[6, 6, 0, 0]}
                           barSize={38}

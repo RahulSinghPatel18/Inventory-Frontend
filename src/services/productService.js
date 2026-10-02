@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { get } from "./api";
 
 const productService = {
   createProduct: async (productData) => {
@@ -7,20 +7,20 @@ const productService = {
   },
 
   getProducts: async (params = {}) => {
-    const response = await api.get(
+    const response = await get(
       "/products/GetAll", {  params } );
 
     return response.data;
   },
 
   getProductStats: async () => {
-    const response = await api.get("/products/Stats");
+    const response = await get("/products/Stats");
 
     return response.data;
   },
 
   getProductById: async (id) => {
-    const response = await api.get( `/products/GetById/${id}` );
+    const response = await get( `/products/GetById/${id}` );
 
     return response.data;
   },

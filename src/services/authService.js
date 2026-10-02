@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { get } from "./api";
 
 const authService = {
   register: async (userData) => {
@@ -12,7 +12,7 @@ const authService = {
   },
 
   getProfile: async () => {
-    const response = await api.get("/users/Profile");
+    const response = await get("/users/Profile");
     return response.data;
   },
 

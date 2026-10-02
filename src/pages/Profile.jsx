@@ -80,22 +80,31 @@ const Profile = () => {
     : user?.organizationId?._id || "";
 
   useEffect(() => {
+    let active = true;
+
     const loadProfile = async () => {
       try {
         const data = await getProfile();
-        setName(data.user?.name || "");
-        setProfileImage(data.user?.profileImage || "");
+        if (active) {
+          setName(data.user?.name || "");
+          setProfileImage(data.user?.profileImage || "");
+        }
       } catch (error) {
-        toast.error(
-          error.response?.data?.message ||
-          "Failed to load profile"
-        );
+        if (active) {
+          toast.error(
+            error.response?.data?.message ||
+            "Failed to load profile"
+          );
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     loadProfile();
+    return () => {
+      active = false;
+    };
   }, [getProfile]);
 
   const handleImageChange = async (event) => {
