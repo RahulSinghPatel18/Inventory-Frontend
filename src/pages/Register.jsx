@@ -9,7 +9,11 @@ import appConfig from "../config/appConfig";
 
 import Input from "../components/common/Input";
 import Button from "../components/common/Button";
-import { isRequired, isValidEmail } from "../utils/validators";
+import {
+  isRequired,
+  isStrongPassword,
+  isValidEmail
+} from "../utils/validators";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -46,9 +50,9 @@ const Register = () => {
     }
     if (!isRequired(formData.password)) {
       errors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      errors.password = "Use at least 8 characters";
-    }
+    } else if (!isStrongPassword(formData.password)) {
+      errors.password =
+       "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."    }
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       setSubmitError("");
