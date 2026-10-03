@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+import Loader from "../components/common/Loader";
 import ProtectedRoute from "./ProtectedRoute";
 
 const Login = lazy(() => import("../pages/Login"));
@@ -17,7 +18,7 @@ const NotFound = lazy(() => import("../pages/NotFound"));
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-      <Suspense fallback={null}>
+      <Suspense fallback={<Loader message="Loading..." />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

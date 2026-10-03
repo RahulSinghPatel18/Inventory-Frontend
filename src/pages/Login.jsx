@@ -16,7 +16,6 @@ const Login = () => {
 
   const {
     login,
-    getProfile,
     isAuthenticated
   } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +58,6 @@ const Login = () => {
 
     try {
       await login({ ...formData, email: formData.email.trim() });
-      await getProfile();
 
       toast.success("Login successful");
 
