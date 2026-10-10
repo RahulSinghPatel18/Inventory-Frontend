@@ -31,6 +31,11 @@ const authService = {
     return response.data;
   },
 
+  resendTwoFactor: async (challengeToken) => {
+    const response = await api.post("/users/ResendTwoFactor", { challengeToken });
+    return response.data;
+  },
+
   login: async (loginData) => {
     const response = await api.post("/users/Login", loginData);
     return response.data;

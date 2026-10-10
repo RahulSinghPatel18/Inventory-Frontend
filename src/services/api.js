@@ -65,7 +65,11 @@ api.interceptors.response.use(
       requestUrl.endsWith("/users/Login") ||
       requestUrl.endsWith("/users/Google") ||
       requestUrl.endsWith("/users/Google/Register") ||
-      requestUrl.endsWith("/users/VerifyTwoFactor");
+      requestUrl.endsWith("/users/VerifyTwoFactor") ||
+      requestUrl.endsWith("/users/ForgotPassword") ||
+      requestUrl.endsWith("/users/VerifyResetOtp") ||
+      requestUrl.endsWith("/users/ResetPassword") ||
+      requestUrl.endsWith("/users/ResendTwoFactor");
 
     if (error.response?.status === 401 && !isPublicAuthRequest) {
       if (storage.getToken()) {

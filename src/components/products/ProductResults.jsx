@@ -6,6 +6,7 @@ import ErrorState from "../common/ErrorState";
 import Pagination from "../common/Pagination";
 import Spinner from "../common/Spinner";
 import SortableHeader from "../common/SortableHeader";
+import formatCurrency from "../../utils/formatCurrency";
 
 const ProductResults = ({
   products,
@@ -17,6 +18,7 @@ const ProductResults = ({
   onDelete,
   canEdit,
   canDelete,
+  canViewDetails,
   pagination,
   onPageChange,
   sortBy,
@@ -63,19 +65,22 @@ const ProductResults = ({
             {products.map((product) => (
               <tr key={product._id} className="border-b theme-border-subtle transition theme-hover-surface">
                 <td className="px-6 py-4">
-                  <Link to={`/products/${product._id}`} className="inline-flex items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+                  {canViewDetails ? <Link to={`/products/${product._id}`} className="inline-flex items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
                     <ProductImage src={product.image} alt={product.name} className="h-10 w-10" />
                     <span className="font-medium theme-text-primary hover:underline">{product.name}</span>
-                  </Link>
+                  </Link> : <span className="inline-flex items-center gap-3">
+                    <ProductImage src={product.image} alt={product.name} className="h-10 w-10" />
+                    <span className="font-medium theme-text-primary">{product.name}</span>
+                  </span>}
                 </td>
                 <td className="px-6 py-4">
                   <span className="inline-flex rounded-full theme-neutral-soft px-3 py-1 text-xs font-medium theme-text-secondary">
                     {product.category?.name ?? "—"}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-medium theme-text-primary">₹{product.price}</td>
+                <td className="px-6 py-4 font-medium theme-text-primary">{formatCurrency(product.price)}</td>
                 <td className="px-6 py-4"><StockBadge quantity={product.quantity} /></td>
-                <td className="px-6 py-4 font-medium theme-text-primary">₹{product.price * product.quantity}</td>
+                <td className="px-6 py-4 font-medium theme-text-primary">{formatCurrency(product.price * product.quantity)}</td>
                 {(canEdit || canDelete) && <td className="px-6 py-4"><ProductActions product={product} onEdit={onEdit} onDelete={onDelete} canEdit={canEdit} canDelete={canDelete} /></td>}
               </tr>
             ))}
@@ -89,19 +94,22 @@ const ProductResults = ({
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="min-w-0">
-                  <Link to={`/products/${product._id}`} className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+                  {canViewDetails ? <Link to={`/products/${product._id}`} className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
                     <ProductImage src={product.image} alt={product.name} className="h-10 w-10" />
                     <span className="truncate font-medium theme-text-primary hover:underline">{product.name}</span>
-                  </Link>
+                  </Link> : <span className="flex min-w-0 items-center gap-3">
+                    <ProductImage src={product.image} alt={product.name} className="h-10 w-10" />
+                    <span className="truncate font-medium theme-text-primary">{product.name}</span>
+                  </span>}
                   <p className="mt-0.5 text-xs theme-text-muted">{product.category?.name ?? "—"}</p>
                 </div>
               </div>
               {(canEdit || canDelete) && <ProductActions product={product} onEdit={onEdit} onDelete={onDelete} canEdit={canEdit} canDelete={canDelete} compact />}
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <MobileValue label="Unit price" value={`₹${product.price}`} />
+              <MobileValue label="Unit price" value={formatCurrency(product.price)} />
               <MobileValue label="Stock" value={product.quantity} />
-              <div className="col-span-2"><MobileValue label="Total value" value={`₹${product.price * product.quantity}`} /></div>
+              <div className="col-span-2"><MobileValue label="Total value" value={formatCurrency(product.price * product.quantity)} /></div>
             </div>
           </article>
         ))}

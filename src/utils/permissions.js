@@ -6,6 +6,7 @@ export const DEFAULT_MEMBER_PERMISSIONS = [
   "sales.view",
   "udhaar.view",
   "customers.view",
+  "notifications.view",
   "profile.view",
   "profile.update",
   "profile.change-password",
@@ -87,6 +88,10 @@ export const permissionGroups = [
       ["profile.view", "View Profile"], ["profile.update", "Edit Profile"],
       ["profile.change-password", "Change Password"], ["profile.two-factor", "Manage 2FA"]
     ]
+  },
+  {
+    label: "Notifications",
+    items: [["notifications.view", "View notifications"]]
   },
   {
     label: "Organization",

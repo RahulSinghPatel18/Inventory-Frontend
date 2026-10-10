@@ -12,6 +12,7 @@ const ChangePassword = () => {
   const navigate = useNavigate();
   const { changePassword, logout, user } = useAuth();
   const mustChangePassword = Boolean(user?.mustChangePassword);
+  const canSetPasswordWithoutCurrent = user?.hasPassword === false && !mustChangePassword;
   const [formData, setFormData] = useState({
     currentPassword: "",
     password: "",
@@ -34,6 +35,10 @@ const ChangePassword = () => {
     event.preventDefault();
     if (isSubmitting) return;
     setError("");
+    if (canSetPasswordWithoutCurrent) {
+      navigate(`/forgot-password?email=${encodeURIComponent(user.email)}`);
+      return;
+    }
     if (!isStrongPassword(formData.password)) {
       setError("Use at least 8 characters with uppercase, lowercase, a number, a symbol, and no more than 72 UTF-8 bytes.");
       return;
@@ -98,17 +103,31 @@ const ChangePassword = () => {
           </span>
           <div className="min-w-0 pt-0.5">
             <h1 className="text-xl font-bold tracking-tight theme-text-primary sm:text-2xl">
-              Change your password
+              {canSetPasswordWithoutCurrent ? "Set a password" : "Change your password"}
             </h1>
             <p className="mt-1 text-sm leading-6 theme-text-muted">
               {mustChangePassword
                 ? "Set a new password to continue to your workspace."
-                : "Choose a new password to keep your account secure."}
+                : canSetPasswordWithoutCurrent
+                  ? "Add a password to your Google account so you can also sign in with email."
+                  : "Choose a new password to keep your account secure."}
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        {canSetPasswordWithoutCurrent ? (
+          <div className="mt-6 space-y-4">
+            <p className="rounded-xl border theme-info-soft p-3 text-sm leading-5 theme-text-secondary">
+              This Google account does not have a password yet. Verify your email with a one-time code to set or change it securely.
+            </p>
+            <Link
+              to={`/forgot-password?email=${encodeURIComponent(user.email)}`}
+              className="flex min-h-11 items-center justify-center rounded-xl theme-primary-action-bg px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              Continue with email verification
+            </Link>
+          </div>
+        ) : <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {mustChangePassword && (
             <p className="rounded-xl border theme-info-soft p-3 text-sm leading-5 theme-text-secondary">
               Your current password is temporary. Change it before continuing.
@@ -158,7 +177,7 @@ const ChangePassword = () => {
           <Button type="submit" loading={isSubmitting} loadingText="Updating password" className="w-full">
             Change password
           </Button>
-        </form>
+        </form>}
       </section>
     </main>
   );

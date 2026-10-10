@@ -11,6 +11,8 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  width: 100%;
+  overflow-x: hidden;
   color: var(--theme-text-primary, #17201c);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--theme-background, #f6f8f7);

@@ -9,6 +9,7 @@ const useAuth = () => {
   const googleLogin = useAuthStore((state) => state.googleLogin);
   const registerGoogleOrganization = useAuthStore((state) => state.registerGoogleOrganization);
   const verifyTwoFactor = useAuthStore((state) => state.verifyTwoFactor);
+  const resendTwoFactor = useAuthStore((state) => state.resendTwoFactor);
   const logout = useAuthStore((state) => state.logout);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const updateOrganization = useAuthStore((state) => state.updateOrganization);
@@ -25,6 +26,7 @@ const useAuth = () => {
     googleLogin,
     registerGoogleOrganization,
     verifyTwoFactor,
+    resendTwoFactor,
     logout,
     updateProfile,
     updateOrganization,

@@ -6,10 +6,12 @@ import Button from "../components/common/Button";
 import BrandLogo from "../components/common/BrandLogo";
 import Input from "../components/common/Input";
 import authService from "../services/authService";
+import useAuth from "../hooks/useAuth";
 import { isStrongPassword, isValidEmail } from "../utils/validators";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const legacyToken = searchParams.get("token") || "";
@@ -70,6 +72,7 @@ const ResetPassword = () => {
     setIsSubmitting(true);
     try {
       await authService.resetPassword({ token: resetToken, password: formData.password });
+      logout();
       toast.success("Password reset successfully. Sign in with your new password.");
       navigate("/login", { replace: true });
     } catch (requestError) {

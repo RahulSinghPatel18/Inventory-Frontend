@@ -60,7 +60,7 @@ const Modal = ({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`theme-modal-enter relative z-10 w-full ${sizes[size]} max-h-[90dvh] overflow-y-auto rounded-2xl theme-surface theme-shadow-lg`}
+        className={`theme-modal-enter relative z-10 w-[calc(100vw-2rem)] max-w-full ${sizes[size]} max-h-[90dvh] overflow-y-auto rounded-2xl theme-surface theme-shadow-lg sm:w-full`}
       >
         <div className="flex items-center justify-between gap-4 border-b theme-border-subtle px-5 py-4 sm:px-6">
           <h2 id={titleId} className="text-lg font-semibold theme-text-primary">

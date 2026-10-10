@@ -1,10 +1,28 @@
 import { create } from "zustand";
 
+const getSavedTheme = () => {
+  try {
+    const saved = localStorage.getItem("theme");
+    return ["light", "dark", "system"].includes(saved) ? saved : "system";
+  } catch (error) {
+    console.warn("Appearance preference could not be read from this device.", error);
+    return "system";
+  }
+};
+
+const saveTheme = (theme) => {
+  try {
+    localStorage.setItem("theme", theme);
+  } catch (error) {
+    console.warn("Appearance preference could not be saved on this device.", error);
+  }
+};
+
 const useUiStore = create((set) => ({
-theme: localStorage.getItem("theme") || "system",
+theme: getSavedTheme(),
 
 setTheme: (theme) => {
-localStorage.setItem("theme", theme);
+saveTheme(theme);
 set({ theme });
 },
 
@@ -13,7 +31,7 @@ set((state) => {
 const newTheme = state.theme === "light" ? "dark" : "light";
 
 
-  localStorage.setItem("theme", newTheme);
+  saveTheme(newTheme);
 
   return { theme: newTheme };
 })

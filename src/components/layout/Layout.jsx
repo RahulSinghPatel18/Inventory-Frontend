@@ -11,7 +11,7 @@ const Layout = ({ children }) => {
     useState(false);
 
   return (
-    <div className="min-h-dvh overflow-x-clip">
+    <div className="min-h-dvh overflow-x-hidden">
 
       <Navbar
         onMenuClick={() => setIsMobileSidebarOpen(true)}
@@ -24,7 +24,7 @@ const Layout = ({ children }) => {
           onToggle={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
         />
 
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 overflow-x-hidden">
           <div className="p-4 sm:p-6 lg:p-8">
             {children}
           </div>

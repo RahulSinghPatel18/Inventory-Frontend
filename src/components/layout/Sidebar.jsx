@@ -52,7 +52,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
 
             return (
               <Fragment key={item.path}>
-                {hasPermission(user, ["profile.view", "profile.update", "profile.change-password", "profile.two-factor"]) && <NavLink
+                <NavLink
                   to={item.path}
                   title={isCollapsed ? item.label : undefined}
                   className={({ isActive }) => `
@@ -105,7 +105,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
                     )}
                   </>
                 )}
-                </NavLink>}
+                </NavLink>
                 {!isCollapsed && item.children?.map((child) => {
                   const ChildIcon = child.icon;
                   return <NavLink

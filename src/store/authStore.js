@@ -43,6 +43,8 @@ const useAuthStore = create((set) => ({
     return applySession(set, data);
   },
 
+  resendTwoFactor: async (challengeToken) => authService.resendTwoFactor(challengeToken),
+
   initializeAuth: async () => {
     const token = storage.getToken();
     if (!token) {

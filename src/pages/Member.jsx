@@ -25,8 +25,6 @@ import authService from "../services/authService";
 import { isRequired, isStrongPassword, isValidEmail } from "../utils/validators";
 import { normalizePermissions, permissionGroups } from "../utils/permissions";
 
-const permissionLabels = new Map(permissionGroups.flatMap(({ items }) => items));
-
 const randomIndex = (max) => {
   const values = new Uint32Array(1);
   window.crypto.getRandomValues(values);

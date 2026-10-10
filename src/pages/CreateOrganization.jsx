@@ -35,7 +35,7 @@ const CreateOrganization = () => {
         registrationToken,
         organizationName: organizationName.trim()
       });
-      toast.success("Organization created. Welcome to MYStockHHub.");
+      toast.success("Organization created. Welcome to MYStockHub.");
       navigate("/dashboard", { replace: true });
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Unable to create your organization. Please try again.");

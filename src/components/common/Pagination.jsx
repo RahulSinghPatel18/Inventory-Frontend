@@ -12,17 +12,18 @@ const Pagination = ({
   }
 
   return (
-    <div className="px-6 py-2 flex items-center justify-between">
+    <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
       <Button
         variant="outline"
         disabled={!hasPreviousPage}
         onClick={() => onPageChange(page - 1)}
+        className="w-full sm:w-auto"
       >
         ← Previous
       </Button>
 
-      <span className="text-sm theme-text-secondary">
+      <span className="text-center text-sm theme-text-secondary">
         Page{" "}
         <span className="font-semibold theme-text-primary">
           {page}
@@ -37,6 +38,7 @@ const Pagination = ({
         variant="outline"
         disabled={!hasNextPage}
         onClick={() => onPageChange(page + 1)}
+        className="w-full sm:w-auto"
       >
         Next →
       </Button>

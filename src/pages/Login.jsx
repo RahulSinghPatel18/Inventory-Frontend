@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowRight, CircleAlert } from "lucide-react";
@@ -12,13 +12,20 @@ import { isRequired, isValidEmail } from "../utils/validators";
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, googleLogin, verifyTwoFactor, isAuthenticated, user } = useAuth();
+  const { login, googleLogin, verifyTwoFactor, resendTwoFactor, isAuthenticated, user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [challengeToken, setChallengeToken] = useState(location.state?.challengeToken || "");
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [otp, setOtp] = useState("");
   const [formData, setFormData] = useState({ email: "", password: "" });
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return undefined;
+    const timeout = window.setTimeout(() => setResendCooldown((remaining) => remaining - 1), 1000);
+    return () => window.clearTimeout(timeout);
+  }, [resendCooldown]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -31,6 +38,7 @@ const Login = () => {
     if (data.requiresTwoFactor) {
       setChallengeToken(data.challengeToken);
       setOtp("");
+      setResendCooldown(60);
       toast.success("A verification code was sent to your email.");
       return;
     }
@@ -38,6 +46,23 @@ const Login = () => {
       ? "Sign in successful. Change your password to continue."
       : "Login successful");
     navigate(data.user.mustChangePassword ? "/change-password" : "/dashboard");
+  };
+
+  const handleResendTwoFactor = async () => {
+    if (!challengeToken || resendCooldown > 0 || isSubmitting) return;
+    setSubmitError("");
+    setIsSubmitting(true);
+    try {
+      const data = await resendTwoFactor(challengeToken);
+      setChallengeToken(data.challengeToken);
+      setOtp("");
+      setResendCooldown(60);
+      toast.success("A new verification code was sent to your email.");
+    } catch (error) {
+      setSubmitError(error.response?.data?.message || "Unable to resend the code. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -155,6 +180,14 @@ const Login = () => {
             <Button type="submit" loading={isSubmitting} loadingText="Verifying..." className="w-full">
               Verify and sign in
             </Button>
+            <button
+              type="button"
+              onClick={handleResendTwoFactor}
+              disabled={isSubmitting || resendCooldown > 0}
+              className="w-full text-sm font-semibold theme-primary-text disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend verification code"}
+            </button>
             <button
               type="button"
               onClick={() => {

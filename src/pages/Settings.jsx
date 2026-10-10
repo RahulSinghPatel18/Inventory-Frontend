@@ -116,6 +116,7 @@ const Settings = () => {
       };
       try {
         localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(next));
+        window.dispatchEvent(new Event("notifications-preferences-updated"));
       } catch {
         toast.error("Notification preference could not be saved on this device.");
       }

@@ -28,7 +28,7 @@ const PageHeader = ({
       </div>
 
       {action && (
-        <div>
+        <div className="w-full sm:w-auto [&>*]:w-full [&>*]:sm:w-auto">
           {action}
         </div>
       )}

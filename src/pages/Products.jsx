@@ -20,6 +20,7 @@ const Products = () => {
   const canCreate = hasPermission(user, "products.create");
   const canUpdate = hasPermission(user, "products.update");
   const canDelete = hasPermission(user, "products.delete");
+  const canViewDetails = hasPermission(user, "products.details");
   const canViewStats = hasPermission(user, "products.statistics");
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -166,6 +167,7 @@ const Products = () => {
             onDelete={setProductToDelete}
             canEdit={canUpdate}
             canDelete={canDelete}
+            canViewDetails={canViewDetails}
             pagination={pagination}
             onPageChange={setPage}
             sortBy={sortBy}

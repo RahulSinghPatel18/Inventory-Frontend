@@ -8,14 +8,14 @@ const sizeClasses = {
 
 const BrandLogo = ({ size = "md", className = "", showMark = true }) => (
   <span
-    aria-label="MYStockHHub"
+    aria-label="MYStockHub"
     className={`inline-flex items-center ${showMark ? "gap-2.5" : ""} whitespace-nowrap font-extrabold leading-none ${sizeClasses[size]} ${className}`}
   >
   
     <span className="inline-flex items-baseline tracking-[-0.045em]">
       <span className="text-[#0F172A]">MY</span>
       <span className="text-[#16A34A]">Stock</span>
-      <span className="text-[#0F172A]">HHub</span>
+      <span className="text-[#0F172A]">Hub</span>
     </span>
   </span>
 );

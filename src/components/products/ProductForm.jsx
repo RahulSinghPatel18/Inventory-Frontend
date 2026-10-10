@@ -98,11 +98,11 @@ const ProductForm = ({
       toast.error("Enter a valid price of 0 or more");
       return;
     }
-    if (
+    if (!product && (
       !isRequired(formData.quantity) ||
       !Number.isInteger(quantity) ||
       quantity < 0
-    ) {
+    )) {
       toast.error("Enter a whole-number quantity of 0 or more");
       return;
     }
@@ -114,7 +114,7 @@ const ProductForm = ({
     onSubmit({
       name,
       price,
-      quantity,
+      ...(!product ? { quantity } : {}),
       category: formData.category,
       ...(imageChanged ? { image } : {})
     });
@@ -185,18 +185,26 @@ const ProductForm = ({
         disabled={loading}
       />
 
-      <Input
-        label="Quantity"
-        name="quantity"
-        type="number"
-        value={formData.quantity}
-        onChange={handleChange}
-        placeholder="Enter quantity"
-        min={0}
-        step={1}
-        required
-        disabled={loading}
-      />
+      {product ? (
+        <div className="rounded-xl border theme-border theme-surface-secondary p-3">
+          <p className="text-xs font-medium theme-text-muted">Current quantity</p>
+          <p className="mt-1 text-sm font-semibold theme-text-primary">{product.quantity}</p>
+          <p className="mt-1 text-xs theme-text-muted">Use the Stock page to record an authorized stock-in or stock-out movement.</p>
+        </div>
+      ) : (
+        <Input
+          label="Opening quantity"
+          name="quantity"
+          type="number"
+          value={formData.quantity}
+          onChange={handleChange}
+          placeholder="Enter opening quantity"
+          min={0}
+          step={1}
+          required
+          disabled={loading}
+        />
+      )}
 
       <Select
         label="Category"

@@ -1,5 +1,5 @@
 const appConfig = {
-  appName: "MYStockHHub",
+  appName: "MYStockHub",
   tagline: "Smart Inventory Control"
 };
 
