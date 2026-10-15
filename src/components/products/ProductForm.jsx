@@ -243,7 +243,7 @@ const ProductForm = ({
       <Button
         type="submit"
         loading={loading || compressingImage}
-        loadingText={compressingImage ? "Compressing image..." : product ? "Updating product..." : "Saving product..."}
+        loadingText={compressingImage ? "Compressing image..." : product ? "Updating..." : "Saving..."}
         className="w-full"
       >
         {product ? "Update " : "Create "}

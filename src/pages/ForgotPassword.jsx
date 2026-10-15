@@ -49,6 +49,9 @@ const ForgotPassword = () => {
         <p className="mt-2 text-sm theme-text-muted">
           Enter your account email and we’ll send a verification code if it matches an account.
         </p>
+        <p className="mt-2 text-xs leading-5 theme-text-muted">
+          If the code doesn’t arrive, check your spam folder and confirm the email address. You can request another code after the 60-second cooldown.
+        </p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {error && <p role="alert" className="rounded-lg theme-danger-soft p-3 text-sm theme-danger">{error}</p>}
           <Input

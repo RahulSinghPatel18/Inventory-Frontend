@@ -173,8 +173,8 @@ const Navbar = ({ onMenuClick }) => {
 
   return (
     <header className="sticky top-0 z-40 border-b theme-border theme-surface-glass">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-3">
+      <div className="flex h-16 items-center justify-between px-3 sm:px-6">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onMenuClick}
@@ -183,10 +183,10 @@ const Navbar = ({ onMenuClick }) => {
           >
             <Menu size={21} />
           </button>
-          <BrandLogo size="md" showMark={false} />
+          <BrandLogo size="sm" showMark={false} className="sm:text-[1.3rem]" />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             type="button"
             onClick={toggleTheme}
@@ -208,8 +208,8 @@ const Navbar = ({ onMenuClick }) => {
               <Bell size={19} />
               {unreadCount > 0 && <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full theme-danger-bg px-1 text-[10px] font-bold text-white">{unreadCount > 99 ? "99+" : unreadCount}</span>}
             </button>
-            {notificationsOpen && <section className="absolute right-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border theme-border theme-surface shadow-xl" role="dialog" aria-label="Notifications">
-              <div className="flex items-center justify-between gap-3 border-b theme-border-subtle px-4 py-3">
+            {notificationsOpen && <section className="fixed inset-x-3 top-[4.25rem] z-50 flex max-h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-2xl border theme-border theme-surface shadow-xl sm:inset-x-auto sm:right-4 sm:w-[min(24rem,calc(100vw-2rem))] lg:absolute lg:right-0 lg:top-full lg:mt-2" role="dialog" aria-label="Notifications">
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b theme-border-subtle px-4 py-3">
                 <div>
                   <h2 className="text-sm font-semibold theme-text-primary">Notifications</h2>
                   <p className="mt-0.5 text-xs theme-text-muted">{unreadCount} unread</p>
@@ -220,15 +220,15 @@ const Navbar = ({ onMenuClick }) => {
                 </div>
               </div>
               {notificationsLoading ? <p className="p-4 text-sm theme-text-muted">Loading notifications…</p> : notificationError ? <p role="alert" className="p-4 text-sm theme-danger">{notificationError}</p> : <>
-                <div className="max-h-[min(70vh,24rem)] overflow-y-auto divide-y theme-border-subtle">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain divide-y theme-border-subtle sm:max-h-[min(70vh,24rem)]">
                   {notifications.map((notification) => {
                     const destination = destinationFor(notification);
                     const content = (
                       <>
                         <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${notification.isRead ? "theme-neutral-soft" : "theme-primary-bg"}`} aria-hidden="true" />
                         <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-medium theme-text-primary">{notification.title}</span>
-                          <span className="mt-0.5 block text-xs theme-text-secondary">{notification.message}</span>
+                          <span className="block break-words text-sm font-medium theme-text-primary [overflow-wrap:anywhere]">{notification.title}</span>
+                          <span className="mt-0.5 block break-words text-xs theme-text-secondary [overflow-wrap:anywhere]">{notification.message}</span>
                           <span className="mt-1 block text-xs theme-text-muted">{new Date(notification.createdAt).toLocaleString()}</span>
                         </span>
                       </>
@@ -240,7 +240,7 @@ const Navbar = ({ onMenuClick }) => {
                   })}
                   {!notifications.length && <p className="p-5 text-center text-sm theme-text-muted">You’re all caught up.</p>}
                 </div>
-                {hasPermission(user, "stock.view") && <div className="border-t theme-border-subtle px-4 py-3"><Link to="/stock" onClick={() => setNotificationsOpen(false)} className="text-sm font-medium theme-primary-text">View stock <span aria-hidden="true">→</span></Link></div>}
+                {hasPermission(user, "stock.view") && <div className="shrink-0 border-t theme-border-subtle px-4 py-3"><Link to="/stock" onClick={() => setNotificationsOpen(false)} className="text-sm font-medium theme-primary-text">View stock <span aria-hidden="true">→</span></Link></div>}
               </>}
             </section>}
           </div>}

@@ -178,7 +178,7 @@ const ResetPassword = () => {
                   className="theme-input w-full rounded-xl border px-4 py-3 text-center text-lg tracking-[0.4em] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--theme-focus-ring)] disabled:cursor-not-allowed disabled:opacity-70"
                 />
                 <p id="reset-otp-help" className="mt-1.5 text-xs leading-5 theme-text-muted">
-                  Check your inbox and spam folder. The code is valid for 10 minutes.
+                  Check your inbox and spam folder. If the code hasn’t arrived, request another after the cooldown. The code is valid for 10 minutes.
                 </p>
               </div>
             </>

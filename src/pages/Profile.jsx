@@ -147,7 +147,7 @@ const Profile = () => {
                 <Button
                   type="submit"
                   loading={saving || isUploading}
-                  loadingText={isUploading ? "Preparing image..." : "Updating profile..."}
+                  loadingText={isUploading ? "Preparing image..." : "Updating..."}
                 >
                   <Save size={16} />
                   Save 

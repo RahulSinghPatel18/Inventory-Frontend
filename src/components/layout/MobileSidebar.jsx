@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { X } from "lucide-react";
 
@@ -12,27 +13,55 @@ const MobileSidebar = ({
   onClose
 }) => {
   const { user } = useAuth();
+  const closeButtonRef = useRef(null);
   const canAccess = (item) => (
     (!item.adminOnly || String(user?.role || "").toLowerCase() === "admin") &&
     (!item.permission || hasPermission(user, item.permission))
   );
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus({ preventScroll: true });
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    const desktopBreakpoint = window.matchMedia("(min-width: 64rem)");
+    const closeOnDesktop = (event) => {
+      if (event.matches) onClose();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    desktopBreakpoint.addEventListener("change", closeOnDesktop);
+
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+      desktopBreakpoint.removeEventListener("change", closeOnDesktop);
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
+    <div className="fixed inset-0 z-50 lg:hidden" role="presentation">
 
-      {/* Overlay */}
-      <div
+      <button
+        type="button"
+        aria-label="Close navigation menu"
         className="absolute inset-0 theme-overlay"
         onClick={onClose}
       />
 
-      {/* Sidebar */}
       <aside
         className="
-          relative
+          fixed inset-y-0 left-0
           z-10
           flex
           h-dvh
@@ -43,6 +72,9 @@ const MobileSidebar = ({
         theme-surface
         shadow-2xl
         "
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
       >
 
         <div className="flex h-16 items-center justify-between border-b theme-border-subtle px-5">
@@ -57,6 +89,7 @@ const MobileSidebar = ({
           </div>
 
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label="Close navigation menu"

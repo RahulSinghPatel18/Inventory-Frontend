@@ -17,7 +17,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
   return (
     <aside
       className="
-      sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 self-start
+      hidden h-full shrink-0
       overflow-y-auto border-r theme-border theme-surface
       transition-[width] duration-300 ease-in-out lg:block
       "

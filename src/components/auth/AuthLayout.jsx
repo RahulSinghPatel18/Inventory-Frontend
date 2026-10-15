@@ -1,7 +1,7 @@
 import BrandLogo from "../common/BrandLogo";
 
 const AuthLayout = ({ eyebrow, title, description, children, footer, compact = false }) => (
-  <main className={`relative isolate flex items-center justify-center overflow-x-hidden bg-[#F3F7F4] px-4 py-4 sm:px-6 sm:py-6 ${compact ? "h-dvh overflow-y-hidden" : "min-h-dvh"}`}>
+  <main className="relative isolate flex min-h-dvh items-center justify-center overflow-x-hidden bg-[#F3F7F4] px-4 py-4 sm:px-6 sm:py-6">
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -10,7 +10,7 @@ const AuthLayout = ({ eyebrow, title, description, children, footer, compact = f
       <div className="absolute -bottom-48 -left-36 h-[28rem] w-[28rem] rounded-full bg-slate-200/50 blur-[110px]" />
     </div>
 
-    <div className="relative grid max-h-full w-full max-w-[1240px] overflow-hidden rounded-[28px] border border-white/90 bg-white shadow-[0_32px_100px_-48px_rgba(15,35,24,0.32)] lg:grid-cols-[1.02fr_0.98fr]">
+    <div className="relative grid w-full max-w-[1240px] overflow-hidden rounded-[28px] border border-white/90 bg-white shadow-[0_32px_100px_-48px_rgba(15,35,24,0.32)] lg:grid-cols-[1.02fr_0.98fr]">
       <section className="relative hidden flex-col justify-center overflow-hidden bg-[#102D20] px-10 py-10 lg:flex xl:px-14 xl:py-12">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_5%,rgba(52,160,99,0.3),transparent_44%),linear-gradient(145deg,rgba(255,255,255,0.025),transparent_55%)]" />
         <div aria-hidden="true" className="pointer-events-none absolute -bottom-36 -left-28 h-80 w-80 rounded-full border border-white/[0.06]" />

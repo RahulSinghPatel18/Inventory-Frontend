@@ -29,10 +29,11 @@ const UserMenu = () => {
           items-center
           gap-3
           rounded-lg
-          px-2
+          px-1
           py-1.5
           transition
           theme-hover-neutral
+          sm:px-2
         "
       >
         <div
