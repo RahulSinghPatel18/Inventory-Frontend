@@ -28,8 +28,8 @@ const SummaryCard = ({ label, value, icon: Icon, tone }) => (
   </article>
 );
 
-const ReportPanel = ({ title, description, children }) => (
-  <section className="overflow-hidden rounded-xl border theme-border theme-surface shadow-sm">
+const ReportPanel = ({ title, description, children, className = "" }) => (
+  <section className={`min-w-0 overflow-hidden rounded-xl border theme-border theme-surface shadow-sm ${className}`}>
     <header className="border-b theme-border-subtle px-5 py-4 sm:px-6">
       <h2 className="text-base font-semibold theme-text-primary">{title}</h2>
       {description && <p className="mt-1 text-xs theme-text-muted">{description}</p>}
@@ -38,15 +38,18 @@ const ReportPanel = ({ title, description, children }) => (
   </section>
 );
 
-const ReportTable = ({ headers, children }) => (
-  <div className="overflow-x-auto">
-    <table className="w-full min-w-[540px] text-left text-sm">
-      <thead className="theme-surface-secondary text-xs uppercase theme-text-muted">
-        <tr>{headers.map((header) => <th key={header} className="px-5 py-3 font-semibold">{header}</th>)}</tr>
-      </thead>
-      <tbody className="divide-y theme-border-subtle">{children}</tbody>
-    </table>
-  </div>
+const ReportTable = ({ headers, children, mobileCards }) => (
+  <>
+    {mobileCards && <div className="divide-y theme-border-subtle md:hidden">{mobileCards}</div>}
+    <div className="hidden overflow-x-auto md:block">
+      <table className="w-full min-w-[540px] text-left text-sm">
+        <thead className="theme-surface-secondary text-xs uppercase theme-text-muted">
+          <tr>{headers.map((header) => <th key={header} className="px-5 py-3 font-semibold">{header}</th>)}</tr>
+        </thead>
+        <tbody className="divide-y theme-border-subtle">{children}</tbody>
+      </table>
+    </div>
+  </>
 );
 
 const SummaryCards = ({ items, loading, error }) => (
@@ -69,7 +72,18 @@ const BusinessReports = ({
   loading,
   canViewSales,
   canViewUdhaar
-}) => (
+}) => {
+  const outstandingCustomerCards = (udhaar?.outstandingCustomers || []).map((customer) => (
+    <article key={customer.customerId} className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold theme-text-primary">{customer.name}</p>
+        <p className="mt-0.5 text-xs theme-text-muted">{numberFormatter.format(customer.recordCount)} active records</p>
+      </div>
+      <p className="shrink-0 text-sm font-semibold theme-warning">{currencyFormatter.format(customer.outstanding)}</p>
+    </article>
+  ));
+
+  return (
   <div className="space-y-8">
     {canViewSales && (
       <section className="space-y-4">
@@ -88,12 +102,12 @@ const BusinessReports = ({
           ]}
         />
         {errors.sales ? <ErrorState message={errors.sales} /> : (
-          <div className="grid gap-5 xl:grid-cols-5">
-            <ReportPanel title="Sales trend" description="Daily sales total over the last 30 days">
+          <div className="grid min-w-0 gap-5 xl:grid-cols-5">
+            <ReportPanel title="Sales trend" description="Daily sales total over the last 30 days" className="xl:col-span-3">
               {!sales?.salesTrend?.length ? (
                 <EmptyState title="No sales in this period" message="Completed sales will appear here." />
               ) : (
-                <div className="h-[300px] w-full px-2 py-4 sm:px-5">
+                <div className="h-[250px] w-full px-1 py-4 sm:h-[300px] sm:px-5">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={sales.salesTrend} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--theme-chart-grid)" />
@@ -106,11 +120,11 @@ const BusinessReports = ({
                 </div>
               )}
             </ReportPanel>
-            <ReportPanel title="Sales by payment method" description="Lifetime sales amount by method">
+            <ReportPanel title="Sales by payment method" description="Lifetime sales amount by method" className="xl:col-span-2">
               {!sales?.paymentMethods?.length ? (
                 <EmptyState title="No payment data" message="Payment method totals will appear here." />
               ) : (
-                <div className="h-[300px] w-full px-2 py-4 sm:px-5">
+                <div className="h-[250px] w-full px-1 py-4 sm:h-[300px] sm:px-5">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={sales.paymentMethods} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--theme-chart-grid)" />
@@ -147,12 +161,12 @@ const BusinessReports = ({
               ]}
             />
             {errors.customers && <ErrorState message={errors.customers} />}
-            <div className="grid gap-5 xl:grid-cols-5">
-              <ReportPanel title="Udhaar and collection trend" description="Daily credit issued and payments collected over the last 30 days">
+            <div className="grid min-w-0 gap-5 xl:grid-cols-5">
+              <ReportPanel title="Udhaar and collection trend" description="Daily credit issued and payments collected over the last 30 days" className="xl:col-span-3">
                 {!udhaar?.udhaarTrend?.length ? (
                   <EmptyState title="No Udhaar activity" message="Credit and collection activity will appear here." />
                 ) : (
-                  <div className="h-[300px] w-full px-2 py-4 sm:px-5">
+                  <div className="h-[250px] w-full px-1 py-4 sm:h-[300px] sm:px-5">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={udhaar.udhaarTrend} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--theme-chart-grid)" />
@@ -167,9 +181,9 @@ const BusinessReports = ({
                   </div>
                 )}
               </ReportPanel>
-              <ReportPanel title="Customers with highest balance" description="Current active Udhaar, ranked by outstanding amount">
+              <ReportPanel title="Customers with highest balance" description="Current active Udhaar, ranked by outstanding amount" className="xl:col-span-2">
                 {udhaar?.outstandingCustomers?.length ? (
-                  <ReportTable headers={["Customer", "Outstanding", "Records"]}>
+                  <ReportTable headers={["Customer", "Outstanding", "Records"]} mobileCards={outstandingCustomerCards}>
                     {udhaar.outstandingCustomers.map((customer) => (
                       <tr key={customer.customerId}>
                         <td className="px-5 py-3.5 font-medium theme-text-primary">{customer.name}</td>
@@ -188,7 +202,8 @@ const BusinessReports = ({
       </section>
     )}
   </div>
-);
+  );
+};
 
 const tooltipStyle = {
   border: "1px solid var(--theme-border)",

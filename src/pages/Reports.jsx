@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 import Layout from "../components/layout/Layout";
 import ReportFilters from "../components/reports/ReportFilters";
 import ReportVisualizations from "../components/reports/ReportVisualizations";
 import BusinessReports from "../components/reports/BusinessReports";
+import ExportMenu from "../components/common/ExportMenu";
 import useBusinessReports from "../hooks/useBusinessReports";
 import useInventoryReport, { getInitialFilters } from "../hooks/useInventoryReport";
 import useAuth from "../hooks/useAuth";
@@ -17,6 +19,12 @@ const Reports = () => {
   const canViewSales = hasPermission(user, "reports.sales");
   const canViewUdhaar = hasPermission(user, "reports.udhaar");
   const canViewProductDetails = hasPermission(user, "products.details");
+  const reportAreas = [
+    canViewProducts && "Products",
+    canViewStock && "Stock",
+    canViewSales && "Sales",
+    canViewUdhaar && "Udhaar"
+  ].filter(Boolean);
   const [draftFilters, setDraftFilters] = useState(getInitialFilters);
   const [filters, setFilters] = useState(getInitialFilters);
   const report = useInventoryReport(filters, { canViewProducts, canViewStock });
@@ -48,9 +56,28 @@ const Reports = () => {
   return (
     <Layout>
       <div className="mx-auto max-w-7xl space-y-5">
-        <header>
-          <h1 className="text-2xl font-bold theme-text-primary">Reports</h1>
-          <p className="mt-1 text-sm theme-text-muted">Inventory, sales, collections and customer balances</p>
+        <header className="flex flex-col gap-3 rounded-2xl border theme-border theme-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
+              <BarChart3 size={21} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold theme-text-primary sm:text-2xl">Reports</h1>
+              <p className="mt-1 text-sm theme-text-muted">Business performance and inventory at a glance</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-2 sm:justify-end">
+            <div className="flex flex-wrap gap-1.5" aria-label="Available report sections">
+              {reportAreas.map((area) => (
+                <span key={area} className="rounded-full theme-surface-secondary px-2.5 py-1 text-xs font-medium theme-text-secondary">
+                  {area}
+                </span>
+              ))}
+            </div>
+            {reportAreas.length > 0 && (
+              <ExportMenu dataset="reports" title="Reports" filters={filters} />
+            )}
+          </div>
         </header>
 
         {(canViewProducts || canViewStock) && <ReportFilters
@@ -93,6 +120,15 @@ const Reports = () => {
             canViewStock={canViewStock}
             canViewProductDetails={canViewProductDetails}
           />
+        )}
+
+        {reportAreas.length === 0 && (
+          <section className="rounded-2xl border theme-border theme-surface p-5 shadow-sm">
+            <h2 className="text-sm font-semibold theme-text-primary">No report data access</h2>
+            <p className="mt-1 text-sm leading-5 theme-text-muted">
+              Ask your administrator to enable Product, Stock, Sales, or Udhaar reports for your account.
+            </p>
+          </section>
         )}
       </div>
     </Layout>

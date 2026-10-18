@@ -20,6 +20,7 @@ import ProductImage from "../components/products/ProductImage";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import Modal from "../components/common/Modal";
 import PageHeader from "../components/common/PageHeader";
+import ExportMenu from "../components/common/ExportMenu";
 import productService from "../services/productService";
 import udhaarService from "../services/udhaarService";
 import useAuth from "../hooks/useAuth";
@@ -450,7 +451,12 @@ const Udhaar = () => {
     <PageHeader
       title="Udhaar Khata"
       description={`Customer credit and payment ledger for ${user?.organizationName || "your organization"}.`}
-      action={canCreateUdhaar && canViewCustomers ? <Button onClick={() => setShowUdhaarForm(true)}>Create</Button> : null}
+      action={(canCreateUdhaar && canViewCustomers) || canViewUdhaar ? (
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          {canViewUdhaar && <ExportMenu dataset="udhaar" title="Udhaar records" />}
+          {canCreateUdhaar && canViewCustomers && <Button onClick={() => setShowUdhaarForm(true)}>Create</Button>}
+        </div>
+      ) : null}
     />
     {canViewStats && <BusinessStats
       items={statCards}

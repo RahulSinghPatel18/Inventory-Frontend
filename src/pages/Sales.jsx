@@ -12,6 +12,7 @@ import Layout from "../components/layout/Layout";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
 import PageHeader from "../components/common/PageHeader";
+import ExportMenu from "../components/common/ExportMenu";
 import BusinessStats from "../components/common/BusinessStats";
 import SortableHeader from "../components/common/SortableHeader";
 import ProductImage from "../components/products/ProductImage";
@@ -52,6 +53,7 @@ const Sales = () => {
   const [statsRefresh, setStatsRefresh] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [productsLoading, setProductsLoading] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [filters, setFilters] = useState({
     search: "", startDate: "", endDate: "", sortBy: "createdAt", sortOrder: "desc"
@@ -115,6 +117,7 @@ const Sales = () => {
 
   const openSaleForm = async () => {
     setProductsLoading(true);
+    setProductSearch("");
     try {
       const productData = await productService.getProducts({ page: 1, limit: 100 });
       if (!Array.isArray(productData.products)) throw new Error("Product API returned an unexpected response.");
@@ -191,7 +194,12 @@ const Sales = () => {
         <PageHeader
           title="Sales"
           description={`Product sales for ${user?.organizationName || "your organization"}.`}
-          action={canCreate ? <Button onClick={openSaleForm} loading={productsLoading}>New sale</Button> : null}
+          action={(canCreate || canViewSales) ? (
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {canViewSales && <ExportMenu dataset="sales" title="sales history" />}
+              {canCreate && <Button onClick={openSaleForm} loading={productsLoading}>New sale</Button>}
+            </div>
+          ) : null}
         />
         {canViewStats && <BusinessStats
           items={statCards}
@@ -217,7 +225,8 @@ const Sales = () => {
           {loading ? <p className="p-6 text-sm theme-text-muted">Loading sales…</p> : sales.length === 0 ? (
             <p className="p-6 text-sm theme-text-muted">No sales found. Create a sale or adjust the filters.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <div className="hidden overflow-x-auto min-[648px]:block">
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="theme-surface-secondary theme-text-muted">
                   <tr>
@@ -257,6 +266,31 @@ const Sales = () => {
                 </tbody>
               </table>
             </div>
+            <div className="grid grid-cols-1 gap-3 p-4 min-[648px]:hidden">
+              {sales.map((sale) => (
+                <article key={sale._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <ProductImage src={sale.items?.[0]?.productImage} alt={sale.items?.[0]?.productName} className="h-11 w-11 shrink-0 rounded-lg" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="break-words font-semibold theme-text-primary">{sale.items?.[0]?.productName || "Product"}{sale.items?.length > 1 ? ` +${sale.items.length - 1} more` : ""}</p>
+                          <p className="mt-1 text-xs theme-text-muted">{sale.createdAt ? new Date(sale.createdAt).toLocaleString() : "—"}</p>
+                        </div>
+                        {canViewDetails && <Link className="min-h-11 shrink-0 rounded-lg px-3 py-2 text-sm font-semibold theme-primary-text theme-hover-neutral" to={`/sales/${sale._id}`}>Details</Link>}
+                      </div>
+                      <dl className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Quantity</dt><dd className="mt-1 text-sm font-semibold theme-text-primary">{(sale.items || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0)}</dd></div>
+                        <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Total</dt><dd className="mt-1 text-sm font-semibold theme-text-primary">{money(sale.totalCents / 100)}</dd></div>
+                        <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Collected</dt><dd className="mt-1 text-sm font-semibold theme-text-primary">{money(sale.paidCents / 100)}</dd></div>
+                        <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Payment / sold by</dt><dd className="mt-1 truncate text-sm font-semibold capitalize theme-text-primary">{sale.paymentMethod || "cash"} · {sale.createdBy?.name || "—"}</dd></div>
+                      </dl>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+            </>
           )}
           {!loading && pages > 1 && <div className="flex items-center justify-between border-t theme-border-subtle px-4 py-3 text-sm">
             <span className="theme-text-muted">Page {page} of {pages}</span>
@@ -269,6 +303,17 @@ const Sales = () => {
       </div>
       <Modal isOpen={showForm} onClose={() => !saving && setShowForm(false)} title="Create product sale" size="xl">
         <form className="space-y-5" onSubmit={createSale}>
+          <div className="sticky top-[-1rem] z-10 -mx-4 -mt-4 border-b theme-border-subtle theme-surface p-4 sm:-mx-6 sm:-mt-6 sm:p-6">
+            <label className="block text-sm font-semibold theme-text-primary" htmlFor="saleProductSearch">Find a product</label>
+            <input
+              id="saleProductSearch"
+              type="search"
+              className={`${fieldClass} min-h-11`}
+              placeholder="Search products by name"
+              value={productSearch}
+              onChange={(event) => setProductSearch(event.target.value)}
+            />
+          </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold theme-text-primary">Products</h3>
@@ -283,7 +328,10 @@ const Sales = () => {
                     updateItem(index, { productId: event.target.value, price: product?.price ?? "" });
                   }}>
                     <option value="">Select product</option>
-                    {products.map((product) => <option key={product._id} value={product._id}>{product.name} · {product.quantity} in stock</option>)}
+                    {products.filter((product) => (
+                      product.name.toLowerCase().includes(productSearch.trim().toLowerCase()) ||
+                      product._id === item.productId
+                    )).map((product) => <option key={product._id} value={product._id}>{product.name} · {product.quantity} in stock</option>)}
                   </select>
                   {selected && <span className="mt-2 inline-flex items-center gap-2 rounded-lg theme-surface-secondary p-2">
                     <ProductImage src={selected.image} alt={selected.name} className="h-9 w-9 rounded-lg" />
@@ -291,7 +339,11 @@ const Sales = () => {
                   </span>}
                 </label>
                 <label className="text-xs font-medium theme-text-muted">Quantity
-                  <input required min="1" max={selected?.quantity} type="number" className={fieldClass} value={item.quantity} onChange={(event) => updateItem(index, { quantity: event.target.value })} />
+                  <span className="mt-1 flex items-center gap-2">
+                    <button type="button" aria-label="Decrease quantity" disabled={Number(item.quantity) <= 1} onClick={() => updateItem(index, { quantity: String(Math.max(1, Number(item.quantity || 1) - 1)) })} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border theme-border theme-surface text-xl theme-text-primary disabled:opacity-50">−</button>
+                    <input required min="1" max={selected?.quantity} type="number" className={`${fieldClass} mt-0 min-h-11 text-center`} value={item.quantity} onChange={(event) => updateItem(index, { quantity: event.target.value })} />
+                    <button type="button" aria-label="Increase quantity" disabled={!selected || Number(item.quantity) >= selected.quantity} onClick={() => updateItem(index, { quantity: String(Number(item.quantity || 0) + 1) })} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border theme-border theme-surface text-xl theme-text-primary disabled:opacity-50">+</button>
+                  </span>
                 </label>
                 <label className="text-xs font-medium theme-text-muted">Selling price
                   <input required min="0.01" step="0.01" type="number" className={fieldClass} value={item.price} onChange={(event) => updateItem(index, { price: event.target.value })} />
@@ -312,7 +364,7 @@ const Sales = () => {
             </div>
           </div>
           <p className="text-xs theme-text-muted">Normal product sales are paid in full and are not linked to a customer or Udhaar ledger.</p>
-          <div className="flex justify-end gap-3">
+          <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-col-reverse gap-3 border-t theme-border-subtle theme-surface p-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:p-6">
             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
             <Button type="submit" loading={saving} loadingText="Saving…" disabled={estimate <= 0}>Confirm sale</Button>
           </div>

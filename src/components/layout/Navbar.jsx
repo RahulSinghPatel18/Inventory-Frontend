@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Bell, CheckCheck, Menu, Moon, Sun } from "lucide-react";
+import { ArrowUpRight, Bell, CheckCheck, Menu, MessageSquareText, Moon, Sun } from "lucide-react";
 
 import BrandLogo from "../common/BrandLogo";
+import FeedbackReportModal from "../common/FeedbackReportModal";
 import UserMenu from "./UserMenu";
 import notificationService from "../../services/notificationService";
 import useUiStore from "../../store/uiStore";
@@ -33,6 +34,7 @@ const Navbar = ({ onMenuClick }) => {
   const canViewSales = hasPermission(user, "sales.details");
   const canViewNotificationSettings = hasPermission(user, "profile.view");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [notificationError, setNotificationError] = useState("");
   const [notifications, setNotifications] = useState([]);
@@ -189,6 +191,17 @@ const Navbar = ({ onMenuClick }) => {
         <div className="flex items-center gap-1 sm:gap-2">
           <button
             type="button"
+            onClick={() => setFeedbackOpen(true)}
+            aria-label="Send feedback or report a bug"
+            title="Send feedback"
+            className="flex h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-2.5 theme-text-muted transition theme-hover-neutral theme-hover-text-primary sm:px-3"
+          >
+            <MessageSquareText size={18} aria-hidden="true" />
+            <span className="hidden text-sm font-medium sm:inline">Feedback</span>
+          </button>
+
+          <button
+            type="button"
             onClick={toggleTheme}
             aria-label="Toggle theme"
             className="flex h-11 w-11 items-center justify-center rounded-xl theme-text-muted transition theme-hover-neutral theme-hover-text-primary"
@@ -248,6 +261,7 @@ const Navbar = ({ onMenuClick }) => {
           <UserMenu />
         </div>
       </div>
+      <FeedbackReportModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </header>
   );
 };

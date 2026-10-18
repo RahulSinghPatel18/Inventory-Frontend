@@ -25,6 +25,7 @@ const Members = lazy(() => import("../pages/Member"));
 const ChangePassword = lazy(() => import("../pages/ChangePassword"));
 const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/ResetPassword"));
+const LegalPage = lazy(() => import("../pages/LegalPage"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
@@ -38,6 +39,8 @@ const AppRoutes = () => {
           <Route path="/create-organization" element={<CreateOrganization />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/terms-of-service" element={<LegalPage type="terms" />} />
+          <Route path="/privacy-policy" element={<LegalPage type="privacy" />} />
           <Route path="/change-password" element={<ProtectedRoute allowPasswordChange><ChangePassword /></ProtectedRoute>} />
           <Route path="/members" element={<ProtectedRoute adminOnly><Members /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute permission={["dashboard.view", "dashboard.statistics"]}><Dashboard /></ProtectedRoute>} />

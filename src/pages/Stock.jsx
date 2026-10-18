@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import Layout from "../components/layout/Layout";
 import PageHeader from "../components/common/PageHeader";
+import ExportMenu from "../components/common/ExportMenu";
 import StockMovement from "../components/stock/StockMovement";
 import StockRecords from "../components/stock/StockRecords";
 import productService from "../services/productService";
@@ -259,6 +260,7 @@ const Stock = () => {
         <PageHeader
           title="Stock Management"
           description={`${user?.organizationName || "Your organization"} · Record stock movements and review availability`}
+          action={canViewHistory ? <ExportMenu dataset="stock-history" title="stock history" /> : null}
         />
         <StockMovement
           products={canListProducts ? products : []}

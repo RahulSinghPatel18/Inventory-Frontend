@@ -6,7 +6,8 @@ const Modal = ({
   onClose,
   title,
   children,
-  size = "md"
+  size = "md",
+  footer
 }) => {
   const titleId = useId();
   const dialogRef = useRef(null);
@@ -46,12 +47,12 @@ const Modal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="theme-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm sm:p-6">
       <button
         type="button"
         aria-label="Close dialog"
         tabIndex={-1}
-        className="theme-modal-backdrop absolute inset-0 theme-overlay"
+        className="absolute inset-0 bg-transparent"
         onClick={onClose}
       />
       <div
@@ -60,7 +61,7 @@ const Modal = ({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`theme-modal-enter relative z-10 w-[calc(100vw-2rem)] max-w-full ${sizes[size]} max-h-[90dvh] overflow-y-auto rounded-2xl theme-surface theme-shadow-lg sm:w-full`}
+        className={`theme-modal-enter relative z-10 flex w-full max-w-full ${sizes[size]} max-h-[90vh] flex-col overflow-hidden rounded-2xl theme-surface theme-shadow-lg`}
       >
         <div className="flex items-center justify-between gap-4 border-b theme-border-subtle px-5 py-4 sm:px-6">
           <h2 id={titleId} className="text-lg font-semibold theme-text-primary">
@@ -75,7 +76,12 @@ const Modal = ({
             <X size={18} />
           </button>
         </div>
-        <div className="p-5 sm:p-6">{children}</div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">{children}</div>
+        {footer && (
+          <div className="shrink-0 border-t theme-border-subtle theme-surface p-4 sm:px-6 sm:py-5">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );

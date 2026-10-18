@@ -6,6 +6,7 @@ loading = false,
 loadingText = "Loading...",
 disabled = false,
 onClick,
+form,
 className = ""
 }) => {
 const variants = {
@@ -23,6 +24,7 @@ return (
 <button
 type={type}
 onClick={onClick}
+form={form}
 disabled={disabled || loading}
 aria-busy={loading || undefined}
 className={`         inline-flex

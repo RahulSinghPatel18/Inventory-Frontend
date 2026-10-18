@@ -43,19 +43,22 @@ const ProductResults = ({
 
   return (
     <>
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full">
+      <div className="hidden overflow-x-auto min-[648px]:block">
+        <table className="w-full min-w-[900px]">
           <thead>
             <tr className="border-b theme-border-subtle theme-surface-secondary text-left">
               {[
                 ["Product", "name"],
                 ["Category", "category"],
                 ["Unit price", "price"],
+                ...(canEdit ? [["Unit cost", null]] : []),
                 ["Stock", "quantity"],
                 ["Total value", "totalValue"]
               ].map(([label, field]) => (
                 <th key={label} className="px-6 py-4 text-xs font-semibold uppercase tracking-wide theme-text-muted">
-                  <SortableHeader field={field} sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>{label}</SortableHeader>
+                  {field
+                    ? <SortableHeader field={field} sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>{label}</SortableHeader>
+                    : label}
                 </th>
               ))}
               {(canEdit || canDelete) && <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide theme-text-muted">Actions</th>}
@@ -79,6 +82,7 @@ const ProductResults = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 font-medium theme-text-primary">{formatCurrency(product.price)}</td>
+                {canEdit && <td className="px-6 py-4 font-medium theme-text-secondary">{product.cost === undefined ? "—" : formatCurrency(product.cost)}</td>}
                 <td className="px-6 py-4"><StockBadge quantity={product.quantity} /></td>
                 <td className="px-6 py-4 font-medium theme-text-primary">{formatCurrency(product.price * product.quantity)}</td>
                 {(canEdit || canDelete) && <td className="px-6 py-4"><ProductActions product={product} onEdit={onEdit} onDelete={onDelete} canEdit={canEdit} canDelete={canDelete} /></td>}
@@ -88,7 +92,7 @@ const ProductResults = ({
         </table>
       </div>
 
-      <div className="space-y-3 p-4 md:hidden">
+      <div className="grid grid-cols-1 gap-4 p-4 min-[648px]:hidden">
         {products.map((product) => (
           <article key={product._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
@@ -108,6 +112,7 @@ const ProductResults = ({
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <MobileValue label="Unit price" value={formatCurrency(product.price)} />
+              {canEdit && <MobileValue label="Unit cost" value={product.cost === undefined ? "Not set" : formatCurrency(product.cost)} />}
               <MobileValue label="Stock" value={product.quantity} />
               <div className="col-span-2"><MobileValue label="Total value" value={formatCurrency(product.price * product.quantity)} /></div>
             </div>
@@ -133,18 +138,18 @@ const ProductActions = ({ product, onEdit, onDelete, canEdit, canDelete, compact
       onClick={() => onEdit(product)}
       title="Edit "
       aria-label={`Edit ${product.name}`}
-      className={`flex items-center justify-center rounded-lg border theme-border theme-surface theme-text-muted transition theme-hover-primary theme-hover-border-primary ${compact ? "h-8 w-8" : "h-9 w-9"}`}
+      className={`flex items-center justify-center rounded-lg border theme-border theme-surface theme-text-muted transition theme-hover-primary theme-hover-border-primary ${compact ? "h-11 w-11" : "h-9 w-9"}`}
     >
-      <Pencil size={compact ? 15 : 16} />
+      <Pencil size={16} />
     </button>}
     {canDelete && <button
       type="button"
       onClick={() => onDelete(product)}
       title="Delete "
       aria-label={`Delete ${product.name}`}
-      className={`flex items-center justify-center rounded-lg border theme-border theme-surface theme-text-muted transition theme-hover-danger theme-hover-danger-text ${compact ? "h-8 w-8" : "h-9 w-9"}`}
+      className={`flex items-center justify-center rounded-lg border theme-border theme-surface theme-text-muted transition theme-hover-danger theme-hover-danger-text ${compact ? "h-11 w-11" : "h-9 w-9"}`}
     >
-      <Trash2 size={compact ? 15 : 16} />
+      <Trash2 size={16} />
     </button>}
   </div>
 );

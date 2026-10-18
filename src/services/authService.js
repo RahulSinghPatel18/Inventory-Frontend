@@ -76,9 +76,9 @@ const authService = {
     return response.data;
   },
 
-  deleteOrganization: async (confirmationName, confirmationText) => {
+  deleteOrganization: async (confirmationName) => {
     const response = await api.delete("/users/Organization", {
-      data: { confirmationName, confirmationText }
+      data: { confirmationName }
     });
     return response.data;
   },

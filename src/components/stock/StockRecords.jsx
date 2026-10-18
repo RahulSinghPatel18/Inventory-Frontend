@@ -119,7 +119,7 @@ const StockRecords = (props) => {
           <EmptyState title="No stock movements yet" message="Stock in and stock out activity will appear here." icon={Clock3} className="min-h-[260px]" />
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto min-[648px]:block">
               <table className="w-full">
                 <thead><tr className="border-b theme-border-subtle theme-surface-secondary text-left">
                   {[
@@ -160,6 +160,31 @@ const StockRecords = (props) => {
                 </tbody>
               </table>
             </div>
+            <div className="grid grid-cols-1 gap-3 p-4 min-[648px]:hidden">
+              {history.map((entry) => (
+                <article key={entry._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <ProductImage src={entry.productId?.image} alt={entry.productId?.name} className="h-10 w-10 shrink-0 rounded-lg" />
+                    <div className="min-w-0 flex-1">
+                      <div className="break-words font-semibold theme-text-primary">
+                        {canViewProductDetails && entry.productId?._id
+                          ? <Link to={`/products/${entry.productId._id}`} className="rounded-sm hover:underline">{entry.productId.name || "Product"}</Link>
+                          : entry.productId?.name || "Product unavailable"}
+                      </div>
+                      <p className="mt-1 text-xs theme-text-muted">{entry.createdAt ? new Date(entry.createdAt).toLocaleString() : "—"}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${entry.type === "in" ? "theme-success-soft theme-success" : "theme-warning-soft theme-warning"}`}>
+                      {entry.type === "in" ? "Stock in" : "Stock out"}
+                    </span>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Quantity</dt><dd className="mt-1 font-semibold theme-text-primary">{entry.type === "out" ? "-" : "+"}{entry.quantity}</dd></div>
+                    <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Source</dt><dd className="mt-1 truncate capitalize theme-text-secondary">{entry.sourceType ? `${entry.sourceType}${entry.sourceId ? ` #${String(entry.sourceId).slice(-8)}` : ""}` : "—"}</dd></div>
+                    <div className="col-span-2 rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Recorded by</dt><dd className="mt-1 font-medium theme-text-secondary">{entry.createdBy?.name || "—"}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
             <Pagination {...historyPagination} onPageChange={onHistoryPageChange} />
           </>
         )}
@@ -177,7 +202,7 @@ const StockRecords = (props) => {
       />
     ) : (
       <>
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto min-[648px]:block">
           <table className="w-full">
             <thead><tr className="border-b theme-border-subtle theme-surface-secondary text-left">
               {[
@@ -205,6 +230,26 @@ const StockRecords = (props) => {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="grid grid-cols-1 gap-3 p-4 min-[648px]:hidden">
+          {alerts.products.map((product) => (
+            <article key={product._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <ProductImage src={product.image} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg" />
+                <div className="min-w-0 flex-1">
+                  <div className="break-words font-semibold theme-text-primary">
+                    {canViewProductDetails ? <Link to={`/products/${product._id}`} className="rounded-sm hover:underline">{product.name}</Link> : product.name}
+                  </div>
+                  <p className="mt-1 text-xs theme-text-muted">{activeTab === "low" ? "Low stock" : "Out of stock"}</p>
+                </div>
+                <span className="shrink-0 rounded-full theme-warning-soft px-3 py-1 text-sm font-semibold theme-warning">{product.quantity} left</span>
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Unit price</dt><dd className="mt-1 font-semibold theme-text-primary">{money(product.price)}</dd></div>
+                <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Total value</dt><dd className="mt-1 font-semibold theme-text-primary">{money(product.totalValue)}</dd></div>
+              </dl>
+            </article>
+          ))}
         </div>
         <Pagination {...alertPagination} onPageChange={onAlertPageChange} />
       </>

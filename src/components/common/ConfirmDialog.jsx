@@ -25,12 +25,13 @@ const ConfirmDialog = ({
 
       {children}
 
-      <div className="mt-6 flex justify-end gap-3">
+      <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-col-reverse gap-3 border-t theme-border-subtle theme-surface p-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:p-6">
 
         <Button
           variant="outline"
           onClick={onClose}
           disabled={loading}
+          className="w-full sm:w-auto"
         >
           Cancel
         </Button>
@@ -40,6 +41,7 @@ const ConfirmDialog = ({
           onClick={onConfirm}
           loading={loading}
           loadingText={loadingText}
+          className="w-full sm:w-auto"
         >
           {confirmText}
         </Button>

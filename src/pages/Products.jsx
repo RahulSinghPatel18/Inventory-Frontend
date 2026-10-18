@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import Layout from "../components/layout/Layout";
 import PageHeader from "../components/common/PageHeader";
 import Button from "../components/common/Button";
+import ExportMenu from "../components/common/ExportMenu";
 import ProductModal from "../components/products/ProductModal";
 import ProductStats from "../components/products/ProductStats";
 import ProductFilters from "../components/products/ProductFilters";
@@ -21,6 +22,7 @@ const Products = () => {
   const canUpdate = hasPermission(user, "products.update");
   const canDelete = hasPermission(user, "products.delete");
   const canViewDetails = hasPermission(user, "products.details");
+  const canExport = hasPermission(user, ["products.view", "reports.products"]);
   const canViewStats = hasPermission(user, "products.statistics");
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -128,7 +130,12 @@ const Products = () => {
         <PageHeader
           title="Products"
           description="Manage and monitor your inventory"
-          action={canCreate ? <Button onClick={() => setShowModal(true)}>+ Add</Button> : null}
+          action={(canCreate || canExport) ? (
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {canExport && <ExportMenu dataset="products" title="products" />}
+              {canCreate && <Button onClick={() => setShowModal(true)}>+ Add</Button>}
+            </div>
+          ) : null}
         />
 
         {canViewStats && <ProductStats stats={stats} loading={statsLoading} error={statsError} />}

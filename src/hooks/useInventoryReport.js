@@ -183,9 +183,13 @@ const useInventoryReport = (filters, { canViewProducts, canViewStock }) => {
       const name = getCategoryName(product);
       totals.set(name, (totals.get(name) || 0) + product.quantity);
     });
-    return [...totals.entries()]
+    const sorted = [...totals.entries()]
       .map(([name, stock]) => ({ name, stock }))
       .sort((first, second) => second.stock - first.stock);
+    if (sorted.length <= 6) return sorted;
+    const visible = sorted.slice(0, 5);
+    const otherStock = sorted.slice(5).reduce((total, item) => total + item.stock, 0);
+    return [...visible, { name: "Other categories", stock: otherStock }];
   }, [products]);
 
   const stockOverview = useMemo(() => {
@@ -208,12 +212,15 @@ const useInventoryReport = (filters, { canViewProducts, canViewStock }) => {
   }, [reportHistory]);
 
   const topProducts = useMemo(() => [...products]
-    .sort((first, second) => second.price * second.quantity - first.price * first.quantity), [products]);
+    .sort((first, second) => second.price * second.quantity - first.price * first.quantity)
+    .slice(0, 5), [products]);
   const lowStockProducts = useMemo(() => products
     .filter((product) => product.quantity > 0 && product.quantity <= 5)
-    .sort((first, second) => first.quantity - second.quantity), [products]);
+    .sort((first, second) => first.quantity - second.quantity)
+    .slice(0, 8), [products]);
   const recentActivity = useMemo(() => [...reportHistory]
-    .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt)), [reportHistory]);
+    .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt))
+    .slice(0, 8), [reportHistory]);
 
   return {
     categories,

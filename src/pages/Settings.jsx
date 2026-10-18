@@ -58,7 +58,6 @@ const settingsSections = [
   { id: "organization", label: "Organization", icon: Building2 },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "appearance", label: "Appearance", icon: Sun },
-  { id: "preferences", label: "Preferences", icon: IndianRupee },
   { id: "account", label: "Account", icon: LogOut },
   { id: "danger-zone", label: "Danger zone", icon: Trash2 }
 ];

@@ -18,6 +18,7 @@ import ErrorState from "../components/common/ErrorState";
 import Input from "../components/common/Input";
 import Modal from "../components/common/Modal";
 import PageHeader from "../components/common/PageHeader";
+import ExportMenu from "../components/common/ExportMenu";
 import Pagination from "../components/common/Pagination";
 import SortableHeader from "../components/common/SortableHeader";
 import udhaarService from "../services/udhaarService";
@@ -209,7 +210,12 @@ const Customers = () => {
         <PageHeader
           title="Customers"
           description={`Udhaar customers and balances for ${user?.organizationName || "your organization"}.`}
-          action={canCreate ? <Button onClick={() => setCreating(true)}>Add </Button> : null}
+          action={(canCreate || canViewCustomers) ? (
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {canViewCustomers && <ExportMenu dataset="customers" title="customers" />}
+              {canCreate && <Button onClick={() => setCreating(true)}>Add </Button>}
+            </div>
+          ) : null}
         />
         {canViewStats && <BusinessStats items={statCards} loading={statsLoading} error={statsError} onRetry={refresh} />}
 

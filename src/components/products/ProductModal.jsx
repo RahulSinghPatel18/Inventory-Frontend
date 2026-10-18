@@ -25,6 +25,7 @@ const ProductModal = ({
       <ProductForm
         product={product}
         onSubmit={onSubmit}
+        onCancel={onClose}
         loading={loading}
         categories={categories}
         categoriesLoading={categoriesLoading}

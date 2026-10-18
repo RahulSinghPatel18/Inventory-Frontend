@@ -155,7 +155,8 @@ const Categories = () => {
               className="min-h-[360px]"
             />
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <div className="hidden overflow-x-auto min-[648px]:block">
               <table className="w-full">
                 <thead>
                   <tr className="border-b theme-border-subtle theme-surface-secondary text-left">
@@ -222,6 +223,48 @@ const Categories = () => {
                 </tbody>
               </table>
             </div>
+            <div className="grid grid-cols-1 gap-4 p-4 min-[648px]:hidden">
+              {categories.map((category) => (
+                <article key={category._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="min-w-0 break-words font-semibold capitalize theme-text-primary">{category.name}</h3>
+                    {(canUpdate || canDelete) && <div className="flex shrink-0 gap-2">
+                      {canUpdate && <button
+                        type="button"
+                        onClick={() => openEditModal(category)}
+                        aria-label={`Edit ${category.name}`}
+                        className="flex h-11 w-11 items-center justify-center rounded-lg border theme-border theme-surface theme-text-muted transition theme-hover-primary theme-hover-border-primary"
+                      ><Pencil size={17} /></button>}
+                      {canDelete && <button
+                        type="button"
+                        onClick={() => setCategoryToDelete(category)}
+                        aria-label={`Delete ${category.name}`}
+                        className="flex h-11 w-11 items-center justify-center rounded-lg border theme-border theme-surface theme-text-muted transition theme-hover-danger theme-hover-border-danger theme-hover-danger-text"
+                      ><Trash2 size={17} /></button>}
+                    </div>}
+                  </div>
+                  <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-lg theme-surface-secondary p-3">
+                      <dt className="text-xs theme-text-muted">Products</dt>
+                      <dd className="mt-1 font-semibold theme-text-primary">{category.totalProducts.toLocaleString("en-IN")}</dd>
+                    </div>
+                    <div className="rounded-lg theme-surface-secondary p-3">
+                      <dt className="text-xs theme-text-muted">Total stock</dt>
+                      <dd className="mt-1 font-semibold theme-text-primary">{category.totalStock.toLocaleString("en-IN")}</dd>
+                    </div>
+                    <div className="rounded-lg theme-surface-secondary p-3">
+                      <dt className="text-xs theme-text-muted">Inventory value</dt>
+                      <dd className="mt-1 font-semibold theme-text-primary">{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(category.inventoryValue)}</dd>
+                    </div>
+                    <div className="rounded-lg theme-surface-secondary p-3">
+                      <dt className="text-xs theme-text-muted">Created</dt>
+                      <dd className="mt-1 font-semibold theme-text-primary">{new Date(category.createdAt).toLocaleDateString()}</dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+            </>
           )}
           {!loading && !error && pagination && categories.length > 0 && (
             <Pagination
@@ -238,7 +281,7 @@ const Categories = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={selectedCategory ? "Update " : "Create "}
+        title={selectedCategory ? "Update category" : "Create category"}
       >
         <form onSubmit={handleSave} className="space-y-5">
           <Input
@@ -251,14 +294,17 @@ const Categories = () => {
             autoFocus
             disabled={saving}
           />
-          <Button
-            type="submit"
-            loading={saving}
-            loadingText={selectedCategory ? "Updating..." : "Saving..."}
-            className="w-full"
-          >
-            {selectedCategory ? "Update " : "Create "}
-          </Button>
+          <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-col-reverse gap-3 border-t theme-border-subtle theme-surface p-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:p-6">
+            <Button type="button" variant="outline" disabled={saving} onClick={closeModal} className="w-full sm:w-auto">Cancel</Button>
+            <Button
+              type="submit"
+              loading={saving}
+              loadingText={selectedCategory ? "Updating..." : "Saving..."}
+              className="w-full sm:w-auto"
+            >
+              {selectedCategory ? "Update category" : "Create category"}
+            </Button>
+          </div>
         </form>
       </Modal>
 

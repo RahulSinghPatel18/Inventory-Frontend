@@ -1,4 +1,5 @@
 import BrandLogo from "../common/BrandLogo";
+import { Link } from "react-router-dom";
 
 const AuthLayout = ({ eyebrow, title, description, children, footer, compact = false }) => (
   <main className="relative isolate flex min-h-dvh items-center justify-center overflow-x-hidden bg-[#F3F7F4] px-4 py-4 sm:px-6 sm:py-6">
@@ -108,6 +109,10 @@ const AuthLayout = ({ eyebrow, title, description, children, footer, compact = f
           </header>
           {children}
           {footer && <div className={compact ? "mt-3 sm:mt-6" : ""}>{footer}</div>}
+          <nav aria-label="Legal information" className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-slate-100 pt-4 text-xs text-slate-500">
+            <Link to="/terms-of-service" className="rounded-sm hover:text-emerald-700 hover:underline">Terms of Service</Link>
+            <Link to="/privacy-policy" className="rounded-sm hover:text-emerald-700 hover:underline">Privacy Policy</Link>
+          </nav>
         </div>
       </section>
     </div>

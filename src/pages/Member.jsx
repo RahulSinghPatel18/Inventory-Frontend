@@ -504,8 +504,26 @@ const Users = () => {
           onClose={() => !isSavingPermissions && setPermissionTarget(null)}
           title={`Permissions${permissionTarget ? ` · ${permissionTarget.name}` : ""}`}
           size="xl"
+          footer={(
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" disabled={isSavingPermissions} onClick={() => setPermissionTarget(null)} className="w-full sm:w-auto">
+                Cancel
+              </Button>
+              <Button type="submit" form="member-permissions-form" loading={isSavingPermissions} loadingText="Saving permissions" className="w-full sm:w-auto">
+                Save permissions
+              </Button>
+            </div>
+          )}
         >
-          <form onSubmit={savePermissions} className="space-y-5">
+          <form id="member-permissions-form" onSubmit={savePermissions} className="space-y-4">
+            <div className="flex flex-col gap-3 rounded-xl border theme-border-subtle theme-surface-secondary p-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs leading-5 theme-text-secondary">
+                Choose the areas this member can access. Member management, organization changes and full backups are administrator-only; signed-in members can always submit feedback.
+              </p>
+              <span className="shrink-0 text-xs font-semibold theme-text-muted">
+                {permissionDraft.length} selected
+              </span>
+            </div>
             <div className="flex flex-wrap justify-end gap-2">
               <Button
                 type="button"
@@ -524,16 +542,16 @@ const Users = () => {
                 Clear all
               </Button>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {permissionGroups.map((group) => (
-                <fieldset key={group.label} className="rounded-xl border theme-border p-4">
+                <fieldset key={group.label} className="min-w-0 rounded-xl border theme-border p-3 sm:p-4">
                   <legend className="px-1 text-sm font-semibold theme-text-primary">{group.label}</legend>
-                  <div className="mt-2 space-y-2">
-                    {group.items.map(([permission, label]) => (
-                      <label key={permission} className="flex items-start gap-2 text-sm theme-text-secondary">
+                  <div className="mt-2 space-y-1">
+                    {group.items.map(([permission, label, apiAccess]) => (
+                      <label key={permission} className="flex min-h-11 cursor-pointer items-start gap-2.5 rounded-lg p-2 text-sm transition theme-hover-surface">
                         <input
                           type="checkbox"
-                          className="mt-1 accent-[var(--color-primary)]"
+                          className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
                           checked={permissionDraft.includes(permission)}
                           onChange={(event) => setPermissionDraft((current) => (
                             event.target.checked
@@ -542,20 +560,15 @@ const Users = () => {
                           ))}
                           disabled={isSavingPermissions}
                         />
-                        <span>{label}</span>
+                        <span className="min-w-0">
+                          <span className="block font-medium theme-text-secondary">{label}</span>
+                          {apiAccess && <span className="mt-0.5 block break-words text-[10px] leading-4 theme-text-muted">{apiAccess}</span>}
+                        </span>
                       </label>
                     ))}
                   </div>
                 </fieldset>
               ))}
-            </div>
-            <div className="flex justify-end gap-3 border-t theme-border-subtle pt-4">
-              <Button type="button" variant="outline" disabled={isSavingPermissions} onClick={() => setPermissionTarget(null)}>
-                Cancel
-              </Button>
-              <Button type="submit" loading={isSavingPermissions} loadingText="Saving permissions">
-                Save permissions
-              </Button>
             </div>
           </form>
         </Modal>

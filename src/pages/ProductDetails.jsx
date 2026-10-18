@@ -76,6 +76,10 @@ const ProductDetails = () => {
                       </span>
                     </dd>
                   </div>
+                  {product.cost !== undefined && <div className="rounded-xl theme-surface-secondary p-4">
+                    <dt className="text-xs theme-text-muted">Unit cost</dt>
+                    <dd className="mt-1 text-lg font-semibold theme-text-primary">{formatCurrency(product.cost)}</dd>
+                  </div>}
                   <div className="rounded-xl theme-surface-secondary p-4 sm:col-span-2">
                   <dt className="text-xs theme-text-muted">Inventory value</dt>
                     <dd className="mt-1 text-lg font-semibold theme-text-primary">{formatCurrency(product.price * product.quantity)}</dd>

@@ -82,8 +82,8 @@ const useAuthStore = create((set) => ({
     return data;
   },
 
-  deleteOrganization: async (confirmationName, confirmationText) => (
-    authService.deleteOrganization(confirmationName, confirmationText)
+  deleteOrganization: async (confirmationName) => (
+    authService.deleteOrganization(confirmationName)
   ),
 
   updateTwoFactor: async (enabled) => {

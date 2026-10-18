@@ -14,10 +14,9 @@ const ResetPassword = () => {
   const { logout } = useAuth();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const legacyToken = searchParams.get("token") || "";
   const [email, setEmail] = useState(searchParams.get("email") || "");
   const [otp, setOtp] = useState("");
-  const [resetToken, setResetToken] = useState(legacyToken);
+  const [resetToken, setResetToken] = useState("");
   const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +35,13 @@ const ResetPassword = () => {
     const timeout = window.setTimeout(() => setCooldown((value) => value - 1), 1000);
     return () => window.clearTimeout(timeout);
   }, [cooldown]);
+
+  useEffect(() => {
+    if (!searchParams.has("token")) return;
+    const safeParams = new URLSearchParams(searchParams);
+    safeParams.delete("token");
+    setSearchParams(safeParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

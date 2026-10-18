@@ -50,15 +50,18 @@ const ReportPanel = ({ title, description, children, className = "" }) => (
   </section>
 );
 
-const TableFrame = ({ headers, children }) => (
-  <div className="overflow-x-auto">
-    <table className="w-full min-w-[620px] text-left text-sm">
-      <thead className="theme-surface-secondary text-xs uppercase theme-text-muted">
-        <tr>{headers.map((header) => <th key={header} className="px-5 py-3 font-semibold">{header}</th>)}</tr>
-      </thead>
-      <tbody className="divide-y theme-border-subtle">{children}</tbody>
-    </table>
-  </div>
+const TableFrame = ({ headers, children, mobileCards }) => (
+  <>
+    {mobileCards && <div className="divide-y theme-border-subtle md:hidden">{mobileCards}</div>}
+    <div className="hidden overflow-x-auto md:block">
+      <table className="w-full min-w-[620px] text-left text-sm">
+        <thead className="theme-surface-secondary text-xs uppercase theme-text-muted">
+          <tr>{headers.map((header) => <th key={header} className="px-5 py-3 font-semibold">{header}</th>)}</tr>
+        </thead>
+        <tbody className="divide-y theme-border-subtle">{children}</tbody>
+      </table>
+    </div>
+  </>
 );
 
 const ReportVisualizations = ({
@@ -83,6 +86,59 @@ const ReportVisualizations = ({
     { label: "Low Stock", value: numberFormatter.format(summary.lowStock), icon: AlertTriangle, tone: "theme-warning-soft theme-warning" },
     { label: "Out of Stock", value: numberFormatter.format(summary.outOfStock), icon: CircleX, tone: "theme-danger-soft theme-danger" }
   ];
+  const topProductCards = topProducts.map((product) => (
+    <article key={product._id} className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <ProductImage src={product.image} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg" />
+        <div className="min-w-0">
+          {canViewProductDetails
+            ? <Link to={`/products/${product._id}`} className="block truncate text-sm font-semibold theme-text-primary hover:underline">{product.name}</Link>
+            : <p className="truncate text-sm font-semibold theme-text-primary">{product.name}</p>}
+          <p className="mt-0.5 truncate text-xs theme-text-muted">{product.category?.name || "Uncategorized"} · {numberFormatter.format(product.quantity)} in stock</p>
+        </div>
+      </div>
+      <span className="shrink-0 text-right text-sm font-semibold theme-text-primary">
+        {currencyFormatter.format(product.price * product.quantity)}
+        <span className="mt-0.5 block text-[10px] font-normal theme-text-muted">inventory value</span>
+      </span>
+    </article>
+  ));
+  const lowStockCards = lowStockProducts.map((product) => (
+    <article key={product._id} className="flex items-center justify-between gap-3 px-4 py-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <ProductImage src={product.image} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg" />
+        <div className="min-w-0">
+          {canViewProductDetails
+            ? <Link to={`/products/${product._id}`} className="block truncate text-sm font-semibold theme-text-primary hover:underline">{product.name}</Link>
+            : <p className="truncate text-sm font-semibold theme-text-primary">{product.name}</p>}
+          <p className="mt-0.5 truncate text-xs theme-text-muted">{product.category?.name || "Uncategorized"} · {currencyFormatter.format(product.price)} each</p>
+        </div>
+      </div>
+      <span className="shrink-0 rounded-full theme-warning-soft px-2.5 py-1 text-xs font-semibold theme-warning">
+        {numberFormatter.format(product.quantity)} left
+      </span>
+    </article>
+  ));
+  const recentActivityCards = recentActivity.map((entry) => {
+    const isStockIn = entry.type === "in";
+    const productName = entry.productId?.name || "Product unavailable";
+    return (
+      <article key={entry._id} className="flex items-center justify-between gap-3 px-4 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <ProductImage src={entry.productId?.image} alt={productName} className="h-10 w-10 shrink-0 rounded-lg" />
+          <div className="min-w-0">
+            {canViewProductDetails && entry.productId?._id
+              ? <Link to={`/products/${entry.productId._id}`} className="block truncate text-sm font-semibold theme-text-primary hover:underline">{productName}</Link>
+              : <p className="truncate text-sm font-semibold theme-text-primary">{productName}</p>}
+            <p className="mt-0.5 truncate text-xs theme-text-muted">{entry.createdBy?.name || "Member unavailable"} · {formatDate(entry.createdAt)}</p>
+          </div>
+        </div>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${isStockIn ? "theme-success-soft theme-success" : "theme-warning-soft theme-warning"}`}>
+          {isStockIn ? "In" : "Out"} · {numberFormatter.format(entry.quantity)}
+        </span>
+      </article>
+    );
+  });
 
   return (
     <>
@@ -153,11 +209,11 @@ const ReportVisualizations = ({
             </ReportPanel>}
           </div>
 
-          {canViewProducts && <ReportPanel title="Most valuable products" description="Products ranked by unit price × current stock">
+          {canViewProducts && <ReportPanel title="Most valuable products" description="Top 5 products ranked by unit price × current stock">
             {productsError ? <ErrorState message={productsError} /> : topProducts.length === 0 ? (
               <EmptyState title="No products to report" message="Add inventory to see product value rankings." />
             ) : (
-              <TableFrame headers={["Product", "Category", "Unit price", "Stock", "Total value"]}>
+              <TableFrame headers={["Product", "Category", "Unit price", "Stock", "Total value"]} mobileCards={topProductCards}>
                 {topProducts.map((product) => (
                   <tr key={product._id}>
                     <td className="px-5 py-3.5 font-medium theme-text-primary"><span className="inline-flex items-center gap-3"><ProductImage src={product.image} alt={product.name} className="h-9 w-9 rounded-lg" />{canViewProductDetails ? <Link to={`/products/${product._id}`} className="hover:underline">{product.name}</Link> : product.name}</span></td>
@@ -171,11 +227,11 @@ const ReportVisualizations = ({
             )}
           </ReportPanel>}
 
-          {canViewProducts && <ReportPanel title="Low stock products" description="Products with 1 to 5 units remaining">
+          {canViewProducts && <ReportPanel title="Low stock products" description="Up to 8 products with 1 to 5 units remaining">
             {productsError ? <ErrorState message={productsError} /> : lowStockProducts.length === 0 ? (
               <EmptyState title="No low stock products" message="No products are currently at or below the low-stock threshold." />
             ) : (
-              <TableFrame headers={["Product", "Category", "Unit price", "Stock remaining", "Total value"]}>
+              <TableFrame headers={["Product", "Category", "Unit price", "Stock remaining", "Total value"]} mobileCards={lowStockCards}>
                 {lowStockProducts.map((product) => (
                   <tr key={product._id}>
                     <td className="px-5 py-3.5 font-medium theme-text-primary"><span className="inline-flex items-center gap-3"><ProductImage src={product.image} alt={product.name} className="h-9 w-9 rounded-lg" />{canViewProductDetails ? <Link to={`/products/${product._id}`} className="hover:underline">{product.name}</Link> : product.name}</span></td>
@@ -189,11 +245,11 @@ const ReportVisualizations = ({
             )}
           </ReportPanel>}
 
-          {canViewStock && <ReportPanel title="Recent stock activity" description="Latest movements matching the selected filters">
+          {canViewStock && <ReportPanel title="Recent stock activity" description="Latest 8 movements matching the selected filters">
             {historyError ? <ErrorState message={historyError} /> : recentActivity.length === 0 ? (
               <EmptyState title="No recent activity" message="Stock movements will appear here when recorded." />
             ) : (
-              <TableFrame headers={["Product", "Type", "Quantity", "Member", "Date"]}>
+              <TableFrame headers={["Product", "Type", "Quantity", "Member", "Date"]} mobileCards={recentActivityCards}>
                 {recentActivity.map((entry) => {
                   const isStockIn = entry.type === "in";
                   return (

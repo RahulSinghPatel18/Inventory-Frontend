@@ -22,6 +22,7 @@ const getCategoryName = (category) =>
 const getInitialFormData = (product) => ({
   name: product?.name ?? "",
   price: product?.price ?? "",
+  cost: product?.cost ?? "",
   quantity: product?.quantity ?? "",
   category: getCategoryId(product?.category)
 });
@@ -33,6 +34,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const ProductForm = ({
   product,
   onSubmit,
+  onCancel,
   loading,
   categories = [],
   categoriesLoading = false,
@@ -88,6 +90,7 @@ const ProductForm = ({
     event.preventDefault();
     const name = formData.name.trim();
     const price = Number(formData.price);
+    const cost = formData.cost === "" ? null : Number(formData.cost);
     const quantity = Number(formData.quantity);
 
     if (!isRequired(name)) {
@@ -96,6 +99,10 @@ const ProductForm = ({
     }
     if (!isRequired(formData.price) || !isPositiveNumber(price)) {
       toast.error("Enter a valid price of 0 or more");
+      return;
+    }
+    if (formData.cost !== "" && !isPositiveNumber(cost)) {
+      toast.error("Enter a valid unit cost of 0 or more");
       return;
     }
     if (!product && (
@@ -114,6 +121,7 @@ const ProductForm = ({
     onSubmit({
       name,
       price,
+      cost,
       ...(!product ? { quantity } : {}),
       category: formData.category,
       ...(imageChanged ? { image } : {})
@@ -185,6 +193,21 @@ const ProductForm = ({
         disabled={loading}
       />
 
+      <div>
+        <Input
+          label="Unit cost (optional)"
+          name="cost"
+          type="number"
+          min={0}
+          step="any"
+          value={formData.cost}
+          onChange={handleChange}
+          placeholder="Enter purchase cost"
+          disabled={loading}
+        />
+        <p className="mt-1.5 text-xs theme-text-muted">Used for internal inventory valuation; only product managers and administrators can view it.</p>
+      </div>
+
       {product ? (
         <div className="rounded-xl border theme-border theme-surface-secondary p-3">
           <p className="text-xs font-medium theme-text-muted">Current quantity</p>
@@ -240,14 +263,17 @@ const ProductForm = ({
         <p className="text-sm theme-text-muted">Create a category before adding a product.</p>
       )}
 
-      <Button
-        type="submit"
-        loading={loading || compressingImage}
-        loadingText={compressingImage ? "Compressing image..." : product ? "Updating..." : "Saving..."}
-        className="w-full"
-      >
-        {product ? "Update " : "Create "}
-      </Button>
+      <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-col-reverse gap-3 border-t theme-border-subtle theme-surface p-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:p-6">
+        <Button type="button" variant="outline" onClick={onCancel} disabled={loading || compressingImage} className="w-full sm:w-auto">Cancel</Button>
+        <Button
+          type="submit"
+          loading={loading || compressingImage}
+          loadingText={compressingImage ? "Compressing image..." : product ? "Updating..." : "Saving..."}
+          className="w-full sm:w-auto"
+        >
+          {product ? "Update product" : "Create product"}
+        </Button>
+      </div>
 
     </form>
   );
