@@ -67,7 +67,41 @@ html:not(.dark) {
 }
 
 .theme-modal-backdrop {
+  --theme-modal-gutter: max(
+    0.5rem,
+    env(safe-area-inset-top),
+    env(safe-area-inset-right),
+    env(safe-area-inset-bottom),
+    env(safe-area-inset-left)
+  );
   animation: theme-modal-fade-in 160ms ease-out both;
+  padding: var(--theme-modal-gutter);
+}
+
+.theme-modal-dialog {
+  max-height: calc(100vh - 1rem);
+}
+
+@media (min-width: 640px) {
+  .theme-modal-backdrop {
+    --theme-modal-gutter: max(
+      1.5rem,
+      env(safe-area-inset-top),
+      env(safe-area-inset-right),
+      env(safe-area-inset-bottom),
+      env(safe-area-inset-left)
+    );
+  }
+
+  .theme-modal-dialog {
+    max-height: 90vh;
+  }
+}
+
+@supports (height: 100dvh) {
+  .theme-modal-dialog {
+    max-height: min(90dvh, calc(100dvh - 2 * var(--theme-modal-gutter)));
+  }
 }
 
 .theme-modal-enter {
