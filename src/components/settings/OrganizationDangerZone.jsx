@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2, FileSpreadsheet, FileText, TriangleAlert, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../../utils/appToast";
 
 import Button from "../common/Button";
 import Input from "../common/Input";
@@ -137,8 +137,8 @@ const OrganizationDangerZone = () => {
           <fieldset className="grid gap-2 sm:grid-cols-2">
             <legend className="sr-only">Choose backup format</legend>
           {[
-            { value: "xlsx", title: "Excel workbook", detail: "One workbook with a separate sheet for each data type.", icon: FileSpreadsheet },
-            { value: "csv", title: "CSV files (ZIP)", detail: "Individual CSV files for importing into other tools.", icon: FileText }
+            { value: "xlsx", title: "Excel workbook", icon: FileSpreadsheet },
+            { value: "csv", title: "CSV files (ZIP)",  icon: FileText }
           ].map(({ value, title, detail, icon: Icon }) => (
             <label
               key={value}

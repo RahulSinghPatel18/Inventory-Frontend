@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import Button from "../components/common/Button";
 import BrandLogo from "../components/common/BrandLogo";
 import Input from "../components/common/Input";

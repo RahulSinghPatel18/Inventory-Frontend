@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
-  ArrowDownToLine,
-  ArrowUpFromLine,
   Boxes,
   CircleX,
   IndianRupee,
@@ -12,10 +10,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -24,11 +19,7 @@ import {
 import EmptyState from "../common/EmptyState";
 import ErrorState from "../common/ErrorState";
 import ProductImage from "../products/ProductImage";
-import {
-  CHART_COLORS,
-  currencyFormatter,
-  numberFormatter
-} from "../../hooks/useInventoryReport";
+import { currencyFormatter, numberFormatter } from "../../hooks/useInventoryReport";
 
 const SummaryCard = ({ label, value, icon: Icon, tone }) => (
   <article className="rounded-xl border theme-border theme-surface p-4 shadow-sm sm:p-5">
@@ -40,8 +31,8 @@ const SummaryCard = ({ label, value, icon: Icon, tone }) => (
   </article>
 );
 
-const ReportPanel = ({ title, description, children, className = "" }) => (
-  <section className={`overflow-hidden rounded-xl border theme-border theme-surface shadow-sm ${className}`}>
+const ReportPanel = ({ title, description, children }) => (
+  <section className="overflow-hidden rounded-xl border theme-border theme-surface shadow-sm">
     <header className="border-b theme-border-subtle px-5 py-4 sm:px-6">
       <h2 className="text-base font-semibold theme-text-primary">{title}</h2>
       {description && <p className="mt-1 text-xs theme-text-muted">{description}</p>}
@@ -69,12 +60,8 @@ const ReportVisualizations = ({
   productsError,
   historyError,
   summary,
-  categoryData,
   stockOverview,
-  topProducts,
   lowStockProducts,
-  recentActivity,
-  formatDate,
   canViewProducts,
   canViewStock,
   canViewProductDetails
@@ -84,25 +71,9 @@ const ReportVisualizations = ({
     { label: "Total Stock", value: numberFormatter.format(summary.totalStock), icon: Boxes, tone: "theme-info-soft theme-info" },
     { label: "Inventory Value", value: currencyFormatter.format(summary.inventoryValue), icon: IndianRupee, tone: "theme-success-soft theme-success" },
     { label: "Low Stock", value: numberFormatter.format(summary.lowStock), icon: AlertTriangle, tone: "theme-warning-soft theme-warning" },
-    { label: "Out of Stock", value: numberFormatter.format(summary.outOfStock), icon: CircleX, tone: "theme-danger-soft theme-danger" }
+    { label: "Out of Stock", value: numberFormatter.format(summary.outOfStock), icon: CircleX, tone: "theme-danger-soft theme-danger" },
+    { label: "Units moved", value: numberFormatter.format(summary.monthlyMovements), icon: Boxes, tone: "theme-info-soft theme-info" }
   ];
-  const topProductCards = topProducts.map((product) => (
-    <article key={product._id} className="flex items-center justify-between gap-3 px-4 py-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <ProductImage src={product.image} alt={product.name} className="h-10 w-10 shrink-0 rounded-lg" />
-        <div className="min-w-0">
-          {canViewProductDetails
-            ? <Link to={`/products/${product._id}`} className="block truncate text-sm font-semibold theme-text-primary hover:underline">{product.name}</Link>
-            : <p className="truncate text-sm font-semibold theme-text-primary">{product.name}</p>}
-          <p className="mt-0.5 truncate text-xs theme-text-muted">{product.category?.name || "Uncategorized"} · {numberFormatter.format(product.quantity)} in stock</p>
-        </div>
-      </div>
-      <span className="shrink-0 text-right text-sm font-semibold theme-text-primary">
-        {currencyFormatter.format(product.price * product.quantity)}
-        <span className="mt-0.5 block text-[10px] font-normal theme-text-muted">inventory value</span>
-      </span>
-    </article>
-  ));
   const lowStockCards = lowStockProducts.map((product) => (
     <article key={product._id} className="flex items-center justify-between gap-3 px-4 py-3">
       <div className="flex min-w-0 items-center gap-3">
@@ -119,31 +90,19 @@ const ReportVisualizations = ({
       </span>
     </article>
   ));
-  const recentActivityCards = recentActivity.map((entry) => {
-    const isStockIn = entry.type === "in";
-    const productName = entry.productId?.name || "Product unavailable";
-    return (
-      <article key={entry._id} className="flex items-center justify-between gap-3 px-4 py-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <ProductImage src={entry.productId?.image} alt={productName} className="h-10 w-10 shrink-0 rounded-lg" />
-          <div className="min-w-0">
-            {canViewProductDetails && entry.productId?._id
-              ? <Link to={`/products/${entry.productId._id}`} className="block truncate text-sm font-semibold theme-text-primary hover:underline">{productName}</Link>
-              : <p className="truncate text-sm font-semibold theme-text-primary">{productName}</p>}
-            <p className="mt-0.5 truncate text-xs theme-text-muted">{entry.createdBy?.name || "Member unavailable"} · {formatDate(entry.createdAt)}</p>
-          </div>
-        </div>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${isStockIn ? "theme-success-soft theme-success" : "theme-warning-soft theme-warning"}`}>
-          {isStockIn ? "In" : "Out"} · {numberFormatter.format(entry.quantity)}
-        </span>
-      </article>
-    );
-  });
-
   return (
-    <>
-      {canViewProducts && <section aria-label="Inventory summary" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {summaries.map((item) => <SummaryCard key={item.label} {...item} value={loading || productsError ? "—" : item.value} />)}
+    <div className="space-y-5 motion-safe:animate-[report-enter_360ms_ease-out_both]">
+      {(canViewProducts || canViewStock) && <section aria-label="Inventory summary" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+        {summaries
+          .filter((item) => canViewProducts || item.label === "Units moved")
+          .filter((item) => canViewStock || item.label !== "Units moved")
+          .map((item) => (
+            <SummaryCard
+              key={item.label}
+              {...item}
+              value={loading || (item.label === "Units moved" ? historyError : productsError) ? "—" : item.value}
+            />
+          ))}
       </section>}
 
       {loading ? (
@@ -157,8 +116,8 @@ const ReportVisualizations = ({
               No specific report permissions are enabled for your account. Ask your administrator to grant access to a report.
             </p>
           ) : <>
-          <div className={`grid gap-5 ${canViewProducts && canViewStock ? "xl:grid-cols-5" : ""}`}>
-            {canViewStock && <ReportPanel title="Stock overview" description="Units moved by day in the selected period" className={canViewProducts ? "xl:col-span-3" : ""}>
+          <div className="grid gap-5">
+            {canViewStock && <ReportPanel title="Stock overview" description="Units moved by day in the selected period">
               {historyError ? <ErrorState message={historyError} /> : stockOverview.length === 0 ? (
                 <EmptyState title="No stock activity" message="No stock movements match the selected filters." />
               ) : (
@@ -178,54 +137,7 @@ const ReportVisualizations = ({
               )}
             </ReportPanel>}
 
-            {canViewProducts && <ReportPanel title="Inventory by category" description="Current units available" className={canViewStock ? "xl:col-span-2" : ""}>
-              {productsError ? <ErrorState message={productsError} /> : categoryData.length === 0 ? (
-                <EmptyState title="No category inventory" message="Products will appear here when inventory is available." />
-              ) : (
-                <div className="flex flex-col items-center gap-2 p-4 sm:flex-row sm:justify-center">
-                  <div className="h-[250px] w-full max-w-[280px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={categoryData} dataKey="stock" nameKey="name" innerRadius={58} outerRadius={94} paddingAngle={3}>
-                          {categoryData.map((item, index) => <Cell key={item.name} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
-                        </Pie>
-                        <Tooltip formatter={(value) => [numberFormatter.format(value), "Units"]} contentStyle={tooltipStyle} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <ul className="grid w-full gap-2 sm:max-w-[170px]">
-                    {categoryData.map((item, index) => (
-                      <li key={item.name} className="flex min-w-0 items-center justify-between gap-3 text-xs">
-                        <span className="flex min-w-0 items-center gap-2 theme-text-secondary">
-                          <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
-                          <span className="truncate">{item.name}</span>
-                        </span>
-                        <span className="shrink-0 font-semibold theme-text-primary">{numberFormatter.format(item.stock)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </ReportPanel>}
           </div>
-
-          {canViewProducts && <ReportPanel title="Most valuable products" description="Top 5 products ranked by unit price × current stock">
-            {productsError ? <ErrorState message={productsError} /> : topProducts.length === 0 ? (
-              <EmptyState title="No products to report" message="Add inventory to see product value rankings." />
-            ) : (
-              <TableFrame headers={["Product", "Category", "Unit price", "Stock", "Total value"]} mobileCards={topProductCards}>
-                {topProducts.map((product) => (
-                  <tr key={product._id}>
-                    <td className="px-5 py-3.5 font-medium theme-text-primary"><span className="inline-flex items-center gap-3"><ProductImage src={product.image} alt={product.name} className="h-9 w-9 rounded-lg" />{canViewProductDetails ? <Link to={`/products/${product._id}`} className="hover:underline">{product.name}</Link> : product.name}</span></td>
-                    <td className="px-5 py-3.5 theme-text-secondary">{product.category?.name || "Uncategorized"}</td>
-                    <td className="px-5 py-3.5 theme-text-secondary">{currencyFormatter.format(product.price)}</td>
-                    <td className="px-5 py-3.5 theme-text-secondary">{numberFormatter.format(product.quantity)}</td>
-                    <td className="px-5 py-3.5 font-semibold theme-text-primary">{currencyFormatter.format(product.price * product.quantity)}</td>
-                  </tr>
-                ))}
-              </TableFrame>
-            )}
-          </ReportPanel>}
 
           {canViewProducts && <ReportPanel title="Low stock products" description="Up to 8 products with 1 to 5 units remaining">
             {productsError ? <ErrorState message={productsError} /> : lowStockProducts.length === 0 ? (
@@ -245,42 +157,10 @@ const ReportVisualizations = ({
             )}
           </ReportPanel>}
 
-          {canViewStock && <ReportPanel title="Recent stock activity" description="Latest 8 movements matching the selected filters">
-            {historyError ? <ErrorState message={historyError} /> : recentActivity.length === 0 ? (
-              <EmptyState title="No recent activity" message="Stock movements will appear here when recorded." />
-            ) : (
-              <TableFrame headers={["Product", "Type", "Quantity", "Member", "Date"]} mobileCards={recentActivityCards}>
-                {recentActivity.map((entry) => {
-                  const isStockIn = entry.type === "in";
-                  return (
-                    <tr key={entry._id}>
-                      <td className="px-5 py-3.5 font-medium theme-text-primary">
-                        <span className="inline-flex items-center gap-3">
-                          <ProductImage src={entry.productId?.image} alt={entry.productId?.name} className="h-9 w-9 rounded-lg" />
-                          {canViewProductDetails && entry.productId?._id
-                            ? <Link to={`/products/${entry.productId._id}`} className="hover:underline">{entry.productId.name || "Product"}</Link>
-                            : entry.productId?.name || "Product unavailable"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${isStockIn ? "theme-success-soft theme-success" : "theme-warning-soft theme-warning"}`}>
-                          {isStockIn ? <ArrowDownToLine size={13} /> : <ArrowUpFromLine size={13} />}
-                          {isStockIn ? "In" : "Out"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 theme-text-secondary">{numberFormatter.format(entry.quantity)}</td>
-                      <td className="px-5 py-3.5 theme-text-secondary">{entry.createdBy?.name || "Member unavailable"}</td>
-                      <td className="px-5 py-3.5 theme-text-secondary">{formatDate(entry.createdAt)}</td>
-                    </tr>
-                  );
-                })}
-              </TableFrame>
-            )}
-          </ReportPanel>}
           </>}
         </>
       )}
-    </>
+    </div>
   );
 };
 

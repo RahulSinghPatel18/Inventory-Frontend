@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { Building2, Camera, Mail, Shield, Pencil, Save, X } from "lucide-react";
-import { toast } from "sonner";
+import { Building2, Camera, Mail, Shield, Pencil, Save, X, UserRound } from "lucide-react";
+import { toast } from "../utils/appToast";
 
 import Layout from "../components/layout/Layout";
 import Button from "../components/common/Button";
@@ -128,18 +128,20 @@ const Profile = () => {
     <Layout>
       <div className="mx-auto max-w-7xl">
         <form onSubmit={handleSubmit}>
-          <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight theme-text-primary">Profile</h1>
+          <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] theme-primary-text">Account</p>
+              <h1 className="text-2xl font-bold tracking-tight theme-text-primary sm:text-3xl">Your profile</h1>
               <p className="mt-1 text-sm theme-text-muted">Manage your personal and account details</p>
             </div>
             {isEditing ? (
-              <div className="flex gap-2">
+              <div className="flex w-full gap-2 sm:w-auto">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleCancelEdit}
                   disabled={saving || isUploading}
+                  className="flex-1 sm:flex-none"
                 >
                   <X size={16} />
                   Cancel
@@ -148,6 +150,7 @@ const Profile = () => {
                   type="submit"
                   loading={saving || isUploading}
                   loadingText={isUploading ? "Preparing image..." : "Updating..."}
+                  className="flex-1 sm:flex-none"
                 >
                   <Save size={16} />
                   Save 
@@ -162,14 +165,17 @@ const Profile = () => {
           </header>
 
           <section className="overflow-hidden rounded-2xl border theme-border theme-surface shadow-sm">
-            <div className="h-24 theme-decoration-muted sm:h-32" aria-hidden="true" />
-            <div className="px-5 pb-6 sm:px-8">
-              <div className="-mt-12 flex flex-col gap-5 sm:-mt-14 sm:flex-row sm:items-end">
-                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4  theme-primary-bg text-3xl font-bold text-white shadow-md sm:h-28 sm:w-28">
+            <div className="relative h-28 overflow-hidden theme-decoration-muted sm:h-36" aria-hidden="true">
+              <div className="absolute -right-10 -top-24 h-56 w-56 rounded-full border-[28px] border-white/10" />
+              <div className="absolute -bottom-32 right-1/4 h-56 w-56 rounded-full border-[28px] border-white/10" />
+            </div>
+            <div className="px-4 pb-6 sm:px-8">
+              <div className="-mt-14 flex flex-col gap-4 sm:-mt-16 sm:flex-row sm:items-end sm:gap-5">
+                <div className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 theme-surface theme-primary-bg text-3xl font-bold text-white shadow-lg sm:h-32 sm:w-32">
                   {profileImage ? (
                     <img src={profileImage} alt={`${name || "Member"} profile`} className="h-full w-full object-cover" />
                   ) : (
-                    name?.charAt(0)?.toUpperCase() || "U"
+                    <span aria-hidden="true">{name?.charAt(0)?.toUpperCase() || <UserRound size={36} />}</span>
                   )}
                   <input
                     ref={imageInputRef}
@@ -178,29 +184,32 @@ const Profile = () => {
                     onChange={handleImageChange}
                     className="hidden"
                     tabIndex={-1}
-                    disabled={!isEditing || saving || isUploading}
+                    disabled={!canEditProfile || saving || isUploading}
                   />
+                  {canEditProfile && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isEditing) setIsEditing(true);
+                        imageInputRef.current?.click();
+                      }}
+                      disabled={saving || isUploading}
+                      aria-label="Edit profile photo"
+                      title="Change profile photo"
+                      className="absolute bottom-0 right-0 flex h-11 w-11 items-center justify-center rounded-full border-2 theme-border theme-primary-action-bg text-white shadow-md transition hover:scale-105 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <Camera size={18} aria-hidden="true" />
+                    </button>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1 pb-1">
                   <p className="text-xs font-semibold uppercase tracking-wider theme-primary-text">Account profile</p>
-                  <h2 className="mt-1 truncate text-xl font-bold theme-text-primary sm:text-2xl">{name || "Member"}</h2>
-                  <p className="mt-1 truncate text-sm theme-text-muted">{user?.email || "No email available"}</p>
+                  <h2 className="mt-1 break-words text-xl font-bold theme-text-primary sm:text-2xl">{name || "Member"}</h2>
+                  <p className="mt-1 break-all text-sm theme-text-muted">{user?.email || "No email available"}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 pb-1">
-                  {isEditing && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => imageInputRef.current?.click()}
-                      disabled={saving || isUploading}
-                      loading={isUploading}
-                      loadingText="Preparing..."
-                    >
-                      <Camera size={16} />
-                      Change photo
-                    </Button>
-                  )}
-                  <span className="inline-flex items-center gap-2 rounded-full theme-success-soft px-3 py-2 text-xs font-semibold capitalize theme-success">
+                
+                  <span className="inline-flex min-h-10 items-center gap-2 rounded-full theme-success-soft px-3 py-2 text-xs font-semibold capitalize theme-success">
                     <Shield size={14} />
                     {user?.role?.toLowerCase() === "admin" ? "Admin" : "Member"}
                   </span>
@@ -209,13 +218,13 @@ const Profile = () => {
             </div>
           </section>
 
-          <section className="mt-5 rounded-2xl border theme-border theme-surface p-5 shadow-sm sm:p-8">
+          <section className="mt-5 rounded-2xl border theme-border theme-surface p-4 shadow-sm sm:p-8">
             <div className="mb-6">
               <h2 className="text-lg font-semibold theme-text-primary">Account details</h2>
               <p className="mt-1 text-sm theme-text-muted">Information associated with your account</p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               <Input
                 label="Full name"
                 name="name"
@@ -251,7 +260,7 @@ const Profile = () => {
             </div>
           </section>
         </form>
-        <section className="mt-5 rounded-2xl border theme-border theme-surface p-5 shadow-sm sm:p-8">
+        <section className="mt-5 rounded-2xl border theme-border theme-surface p-4 shadow-sm sm:p-8">
           <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl theme-info-soft theme-info"><Building2 size={18} /></span>

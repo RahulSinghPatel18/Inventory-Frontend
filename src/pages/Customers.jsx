@@ -8,7 +8,7 @@ import {
   Trash2,
   Users
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import Layout from "../components/layout/Layout";
 import Button from "../components/common/Button";
 import BusinessStats from "../components/common/BusinessStats";
@@ -31,7 +31,7 @@ const money = (amount) => new Intl.NumberFormat("en-IN", {
   currency: "INR",
   maximumFractionDigits: 2
 }).format(Number(amount || 0));
-const fieldClass = "mt-1 w-full rounded-xl border theme-border theme-surface px-3 py-2.5 text-sm theme-text-primary";
+const fieldClass = "mt-1 w-full rounded-xl border theme-border theme-surface px-3 py-3 text-sm theme-text-primary";
 
 const Customers = () => {
   const { user } = useAuth();
@@ -212,7 +212,18 @@ const Customers = () => {
           description={`Udhaar customers and balances for ${user?.organizationName || "your organization"}.`}
           action={(canCreate || canViewCustomers) ? (
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-              {canViewCustomers && <ExportMenu dataset="customers" title="customers" />}
+              {canViewCustomers && <ExportMenu
+                dataset="customers"
+                title="customers"
+                filters={{
+                  search: debouncedSearch,
+                  status: statusFilter,
+                  startDate,
+                  endDate,
+                  sortBy,
+                  sortOrder: order
+                }}
+              />}
               {canCreate && <Button onClick={() => setCreating(true)}>Add </Button>}
             </div>
           ) : null}
@@ -271,7 +282,40 @@ const Customers = () => {
               className="min-h-[280px]"
             />
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <div className="grid gap-3 p-4 md:hidden">
+              {customers.map((customer) => {
+                const pending = Number(customer.pendingAmount || 0);
+                const status = customer.status === "paid" ? "Paid" : customer.status === "none" ? "No Udhaar" : customer.status === "partial" ? "Partial" : "Pending";
+                return (
+                  <article key={customer._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        {canViewLedger
+                          ? <Link className="break-words font-semibold theme-primary-text hover:underline" to={`/customers/${customer._id}`}>{customer.name}</Link>
+                          : <p className="break-words font-semibold theme-text-primary">{customer.name}</p>}
+                        <p className="mt-1 text-sm theme-text-muted">{customer.phone || "Phone unavailable"}</p>
+                      </div>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${status === "Paid" || status === "No Udhaar" ? "theme-success-soft theme-success" : status === "Partial" ? "theme-warning-soft theme-warning" : "theme-danger-soft theme-danger"}`}>{status}</span>
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                      <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Total Udhaar</dt><dd className="mt-1 font-semibold theme-text-primary">{money(customer.totalUdhaar)}</dd></div>
+                      <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Paid</dt><dd className="mt-1 font-semibold theme-text-primary">{money(customer.totalPaid)}</dd></div>
+                      <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Pending</dt><dd className={`mt-1 font-semibold ${pending > 0 ? "theme-danger" : "theme-text-primary"}`}>{money(pending)}</dd></div>
+                      <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Last transaction</dt><dd className="mt-1 font-medium theme-text-primary">{customer.lastTransaction ? new Date(customer.lastTransaction).toLocaleDateString() : "—"}</dd></div>
+                    </dl>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {canViewLedger && <Link className="inline-flex min-h-11 items-center rounded-lg border theme-border px-3 text-sm font-medium theme-primary-text" to={`/customers/${customer._id}`}>Details</Link>}
+                      {canViewLedger && canViewUdhaar && <Link className="inline-flex min-h-11 items-center rounded-lg border theme-border px-3 text-sm font-medium theme-primary-text" to={`/customers/${customer._id}#udhaar-history`}>Udhaar</Link>}
+                      {canViewLedger && canViewPayments && <Link className="inline-flex min-h-11 items-center rounded-lg border theme-border px-3 text-sm font-medium theme-primary-text" to={`/customers/${customer._id}#payment-history`}>Payments</Link>}
+                      {canEdit && <button type="button" className="flex h-11 w-11 items-center justify-center rounded-lg border theme-border theme-text-muted theme-hover-primary" title={`Edit ${customer.name}`} aria-label={`Edit ${customer.name}`} onClick={() => { setEditing(customer); setEditForm({ name: customer.name || "", phone: customer.phone || "" }); }}><Pencil size={16} /></button>}
+                      {canDelete && <button type="button" className="flex h-11 w-11 items-center justify-center rounded-lg border theme-border theme-text-muted theme-hover-danger" title={`Delete ${customer.name}`} aria-label={`Delete ${customer.name}`} onClick={() => setDeleteTarget(customer)}><Trash2 size={16} /></button>}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[820px] text-left text-sm">
                 <thead className="theme-surface-secondary theme-text-muted">
                   <tr>
@@ -319,6 +363,7 @@ const Customers = () => {
                 </tbody>
               </table>
             </div>
+            </>
           )}
           {!loading && !error && pagination && customers.length > 0 && (
             <div className="border-t theme-border-subtle">

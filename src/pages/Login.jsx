@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import { ArrowRight, CircleAlert } from "lucide-react";
 import AuthLayout from "../components/auth/AuthLayout";
 import GoogleSignInButton from "../components/auth/GoogleSignInButton";
@@ -8,6 +8,7 @@ import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import useAuth from "../hooks/useAuth";
 import { isRequired, isValidEmail } from "../utils/validators";
+import { playSoundEffect } from "../utils/soundEffects";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -42,9 +43,10 @@ const Login = () => {
       toast.success("A verification code was sent to your email.");
       return;
     }
+    playSoundEffect("login-success");
     toast.success(data.user.mustChangePassword
       ? "Sign in successful. Change your password to continue."
-      : "Login successful");
+      : "Login successful", { sound: false });
     navigate(data.user.mustChangePassword ? "/change-password" : "/dashboard");
   };
 
@@ -59,6 +61,7 @@ const Login = () => {
       setResendCooldown(60);
       toast.success("A new verification code was sent to your email.");
     } catch (error) {
+      playSoundEffect("warning-error");
       setSubmitError(error.response?.data?.message || "Unable to resend the code. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -70,6 +73,7 @@ const Login = () => {
     setSubmitError("");
     if (challengeToken) {
       if (!/^\d{6}$/.test(otp)) {
+        playSoundEffect("warning-error");
         setSubmitError("Enter the 6-digit verification code sent to your email.");
         return;
       }
@@ -77,6 +81,7 @@ const Login = () => {
       try {
         completeLogin(await verifyTwoFactor({ challengeToken, otp }));
       } catch (error) {
+        playSoundEffect("warning-error");
         setSubmitError(error.response?.data?.message || "Unable to verify the code. Please try again.");
       } finally {
         setIsSubmitting(false);
@@ -88,6 +93,7 @@ const Login = () => {
     if (!isValidEmail(formData.email)) errors.email = "Enter a valid email address";
     if (!isRequired(formData.password)) errors.password = "Password is required";
     if (Object.keys(errors).length) {
+      playSoundEffect("warning-error");
       setFieldErrors(errors);
       return;
     }
@@ -97,6 +103,7 @@ const Login = () => {
     try {
       completeLogin(await login({ ...formData, email: formData.email.trim() }));
     } catch (error) {
+      playSoundEffect("warning-error");
       setSubmitError(
         error.response?.data?.message ||
         (error.response?.status === 401
@@ -122,6 +129,7 @@ const Login = () => {
       }
       completeLogin(data);
     } catch (error) {
+      playSoundEffect("warning-error");
       setSubmitError(
         error.response?.data?.message || "Google sign-in failed. Please try again."
       );

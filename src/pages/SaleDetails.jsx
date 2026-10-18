@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import Button from "../components/common/Button";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import Layout from "../components/layout/Layout";

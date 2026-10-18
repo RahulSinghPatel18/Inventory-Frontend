@@ -43,7 +43,7 @@ const ProductResults = ({
 
   return (
     <>
-      <div className="hidden overflow-x-auto min-[648px]:block">
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[900px]">
           <thead>
             <tr className="border-b theme-border-subtle theme-surface-secondary text-left">
@@ -92,7 +92,7 @@ const ProductResults = ({
         </table>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 p-4 min-[648px]:hidden">
+      <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
         {products.map((product) => (
           <article key={product._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">

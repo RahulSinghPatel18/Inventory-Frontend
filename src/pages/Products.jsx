@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 
 import Layout from "../components/layout/Layout";
 import PageHeader from "../components/common/PageHeader";
@@ -132,7 +132,11 @@ const Products = () => {
           description="Manage and monitor your inventory"
           action={(canCreate || canExport) ? (
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-              {canExport && <ExportMenu dataset="products" title="products" />}
+              {canExport && <ExportMenu
+                dataset="products"
+                title="products"
+                filters={{ name: debouncedSearch, category, sortBy, sortOrder }}
+              />}
               {canCreate && <Button onClick={() => setShowModal(true)}>+ Add</Button>}
             </div>
           ) : null}

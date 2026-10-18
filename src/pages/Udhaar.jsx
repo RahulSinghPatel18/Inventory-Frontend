@@ -10,7 +10,7 @@ import {
   UserRoundCheck,
   UsersRound
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import Layout from "../components/layout/Layout";
 import Button from "../components/common/Button";
 import BusinessStats from "../components/common/BusinessStats";
@@ -28,7 +28,7 @@ import { hasPermission } from "../utils/permissions";
 import { isValidCustomerPhone } from "../utils/validators";
 
 const money = (amount) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(amount || 0));
-const fieldClass = "mt-1 w-full rounded-xl border theme-border theme-surface px-3 py-2.5 text-sm theme-text-primary";
+const fieldClass = "mt-1 w-full rounded-xl border theme-border theme-surface px-3 py-3 text-sm theme-text-primary";
 const emptyItem = () => ({ productId: "", quantity: "1", unitPrice: "" });
 const loadCustomerOptions = (search = "") => udhaarService.getCustomers({ page: 1, limit: 100, search });
 
@@ -453,7 +453,11 @@ const Udhaar = () => {
       description={`Customer credit and payment ledger for ${user?.organizationName || "your organization"}.`}
       action={(canCreateUdhaar && canViewCustomers) || canViewUdhaar ? (
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          {canViewUdhaar && <ExportMenu dataset="udhaar" title="Udhaar records" />}
+          {canViewUdhaar && <ExportMenu
+            dataset="udhaar"
+            title="Udhaar records"
+            filters={{ sortBy, sortOrder }}
+          />}
           {canCreateUdhaar && canViewCustomers && <Button onClick={() => setShowUdhaarForm(true)}>Create</Button>}
         </div>
       ) : null}
@@ -468,7 +472,7 @@ const Udhaar = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b theme-border-subtle px-5 py-4">
         <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg theme-primary-soft theme-primary-text"><UsersRound size={18} /></span><div><h2 className="font-semibold theme-text-primary">Customers</h2><p className="mt-1 text-sm theme-text-muted">Customer balances and ledgers for this organization.</p></div></div>
         <div className="flex items-center gap-2">
-          {canOpenCustomerDirectory && <Link className="rounded-xl border theme-border px-3 py-2 text-sm font-medium theme-primary-text" to="/customers">Manage customers</Link>}
+          {canOpenCustomerDirectory && <Link className="inline-flex min-h-11 items-center rounded-xl border theme-border px-3 text-sm font-medium theme-primary-text" to="/customers">Manage customers</Link>}
           {canCreateCustomer && <Button variant="outline" onClick={() => setShowCustomerForm(true)}>Add </Button>}
         </div>
       </div>
@@ -492,7 +496,40 @@ const Udhaar = () => {
       </div>
       {customerError ? <div role="alert" className="flex items-center justify-between gap-3 p-5 text-sm theme-danger"><span>{customerError}</span><Button variant="outline" onClick={refresh}>Retry</Button></div> : customerDirectoryLoading ? <p className="p-5 text-sm theme-text-muted">Loading customers…</p> : customerDirectory.length === 0 ? (
         <p className="p-5 text-sm theme-text-muted">{debouncedCustomerSearch || customerStatus ? "No customers match the current search or filter." : "No customers yet. Add a customer to start an Udhaar ledger."}</p>
-      ) : <div className="overflow-x-auto">
+      ) : <>
+        <div className="grid gap-3 p-4 md:hidden">
+          {customerDirectory.map((customer) => {
+            const total = Number(customer.totalUdhaar || 0);
+            const paid = Number(customer.totalPaid || 0);
+            const pending = Number(customer.pendingAmount || 0);
+            const status = customer.status === "paid" ? "Paid" : customer.status === "none" ? "No Udhaar" : customer.status === "partial" ? "Partial" : "Pending";
+            return (
+              <article key={customer._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    {canViewLedger
+                      ? <Link className="break-words font-semibold theme-primary-text hover:underline" to={`/customers/${customer._id}`}>{customer.name}</Link>
+                      : <p className="break-words font-semibold theme-text-primary">{customer.name}</p>}
+                    <p className="mt-1 text-sm theme-text-muted">{customer.phone || "Phone unavailable"}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${status === "Paid" || status === "No Udhaar" ? "theme-success-soft theme-success" : status === "Partial" ? "theme-warning-soft theme-warning" : "theme-danger-soft theme-danger"}`}>{status}</span>
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Total Udhaar</dt><dd className="mt-1 font-semibold theme-text-primary">{money(total)}</dd></div>
+                  <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Paid</dt><dd className="mt-1 font-semibold theme-text-primary">{money(paid)}</dd></div>
+                  <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Pending</dt><dd className={`mt-1 font-semibold ${pending > 0 ? "theme-danger" : "theme-text-primary"}`}>{money(pending)}</dd></div>
+                  <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Last transaction</dt><dd className="mt-1 font-medium theme-text-primary">{customer.lastTransaction ? new Date(customer.lastTransaction).toLocaleDateString() : "—"}</dd></div>
+                </dl>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {canViewLedger && <Link className="inline-flex min-h-11 items-center rounded-lg border theme-border px-3 text-sm font-medium theme-primary-text" to={`/customers/${customer._id}`}>Details</Link>}
+                  {canEditCustomer && <Button variant="outline" aria-label={`Edit ${customer.name}`} title="Edit customer details" onClick={() => { setEditCustomerTarget(customer); setEditCustomerForm({ name: customer.name || "", phone: customer.phone || "" }); }}><Pencil size={16} /></Button>}
+                  {canDeleteCustomer && <Button variant="outline" aria-label={`Archive ${customer.name}`} title="Archive customer" onClick={() => setDeleteCustomerTarget(customer)}><Trash2 size={16} /></Button>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[900px] text-left text-sm">
           <thead className="theme-surface-secondary theme-text-muted"><tr>
             {[
@@ -538,7 +575,8 @@ const Udhaar = () => {
             </tr>;
           })}</tbody>
         </table>
-      </div>}
+        </div>
+      </>}
       {!customerError && !customerDirectoryLoading && customerPagination && customerDirectory.length > 0 && (
         <div className="border-t theme-border-subtle">
           <p className="px-4 pt-3 text-center text-xs theme-text-muted">
@@ -573,7 +611,34 @@ const Udhaar = () => {
     {error && <div role="alert" className="mb-4 rounded-xl border theme-danger-border theme-danger-soft p-4 text-sm theme-danger">{error}</div>}
     {canViewUdhaar && <section className="overflow-hidden rounded-2xl border theme-border theme-surface">
       <div className="border-b theme-border-subtle px-5 py-4"><h2 className="font-semibold theme-text-primary">Udhaar history</h2></div>
-      {loading ? <p className="p-6 text-sm theme-text-muted">Loading Udhaar records…</p> : records.length === 0 ? <p className="p-6 text-sm theme-text-muted">No Udhaar records yet.</p> : <div className="overflow-x-auto">
+      {loading ? <p className="p-6 text-sm theme-text-muted">Loading Udhaar records…</p> : records.length === 0 ? <p className="p-6 text-sm theme-text-muted">No Udhaar records yet.</p> : <>
+        <div className="grid gap-3 p-4 md:hidden">
+          {records.map((record) => (
+            <article key={record._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  {canViewLedger
+                    ? <Link className="break-words font-semibold theme-primary-text hover:underline" to={`/customers/${record.customerId?._id}`}>{record.customerId?.name || "Customer"}</Link>
+                    : <p className="break-words font-semibold theme-text-primary">{record.customerId?.name || "Customer"}</p>}
+                  <p className="mt-1 text-xs theme-text-muted">{new Date(record.createdAt).toLocaleString()}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium capitalize ${record.status === "cancelled" ? "theme-danger-soft theme-danger" : "theme-primary-soft theme-primary-text"}`}>{record.status === "cancelled" ? "cancelled" : record.paymentStatus}</span>
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Total</dt><dd className="mt-1 font-semibold theme-text-primary">{money(record.totalCents / 100)}</dd></div>
+                <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Paid</dt><dd className="mt-1 font-semibold theme-text-primary">{money(record.paidCents / 100)}</dd></div>
+                <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Pending</dt><dd className="mt-1 font-semibold theme-danger">{money((record.totalCents - record.paidCents) / 100)}</dd></div>
+                <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Recorded by</dt><dd className="mt-1 truncate font-medium theme-text-primary">{record.createdBy?.name || "—"}</dd></div>
+              </dl>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {canViewDetails && <Button variant="outline" onClick={() => openDetails(record)}>Details</Button>}
+                {canEditUdhaar && record.status !== "cancelled" && !record.items?.length && <Button variant="outline" onClick={() => { setEditUdhaarTarget(record); setEditUdhaarAmount((record.totalCents / 100).toFixed(2)); }}>Edit</Button>}
+                {canCancel && record.status !== "cancelled" && <Button variant="outline" onClick={() => setCancelTarget(record)}>Cancel</Button>}
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[840px] text-left text-sm">
           <thead className="theme-surface-secondary theme-text-muted"><tr>
             {[
@@ -619,7 +684,8 @@ const Udhaar = () => {
             </td>
           </tr>)}</tbody>
         </table>
-      </div>}
+        </div>
+      </>}
       {!loading && pages > 1 && <div className="flex items-center justify-between border-t theme-border-subtle px-4 py-3 text-sm"><span className="theme-text-muted">Page {page} of {pages}</span><div className="flex gap-2"><Button variant="outline" disabled={page <= 1} onClick={() => { setLoading(true); setPage((current) => current - 1); }}>Previous</Button><Button variant="outline" disabled={page >= pages} onClick={() => { setLoading(true); setPage((current) => current + 1); }}>Next</Button></div></div>}
     </section>}
 

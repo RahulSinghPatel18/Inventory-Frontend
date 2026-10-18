@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import categoryService from "../services/categoryService";
 import productService from "../services/productService";
 import stockService from "../services/stockService";
@@ -42,12 +42,6 @@ const getCategoryId = (product) => (
   typeof product.category === "string" ? product.category : product.category?._id
 );
 
-const getCategoryName = (product) => (
-  typeof product.category === "object" && product.category?.name
-    ? product.category.name
-    : "Uncategorized"
-);
-
 const fetchAllPages = async (fetchPage, collection, params) => {
   const firstPage = await fetchPage({ ...params, page: 1 });
   const pages = Array.from(
@@ -80,14 +74,6 @@ const fetchReportHistory = (filters) => {
     ...(startDate && { startDate }),
     ...(endDate && { endDate })
   });
-};
-
-const formatDate = (value) => {
-  if (!value) return "—";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "—"
-    : date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 };
 
 const useInventoryReport = (filters, { canViewProducts, canViewStock }) => {
@@ -174,23 +160,12 @@ const useInventoryReport = (filters, { canViewProducts, canViewStock }) => {
     totalStock: 0,
     inventoryValue: 0,
     lowStock: 0,
-    outOfStock: 0
-  }), [products]);
-
-  const categoryData = useMemo(() => {
-    const totals = new Map();
-    products.forEach((product) => {
-      const name = getCategoryName(product);
-      totals.set(name, (totals.get(name) || 0) + product.quantity);
-    });
-    const sorted = [...totals.entries()]
-      .map(([name, stock]) => ({ name, stock }))
-      .sort((first, second) => second.stock - first.stock);
-    if (sorted.length <= 6) return sorted;
-    const visible = sorted.slice(0, 5);
-    const otherStock = sorted.slice(5).reduce((total, item) => total + item.stock, 0);
-    return [...visible, { name: "Other categories", stock: otherStock }];
-  }, [products]);
+    outOfStock: 0,
+    monthlyMovements: reportHistory.reduce(
+      (total, entry) => total + (Number(entry.quantity) || 0),
+      0
+    )
+  }), [products, reportHistory]);
 
   const stockOverview = useMemo(() => {
     const totals = new Map();
@@ -211,16 +186,10 @@ const useInventoryReport = (filters, { canViewProducts, canViewStock }) => {
       }));
   }, [reportHistory]);
 
-  const topProducts = useMemo(() => [...products]
-    .sort((first, second) => second.price * second.quantity - first.price * first.quantity)
-    .slice(0, 5), [products]);
   const lowStockProducts = useMemo(() => products
     .filter((product) => product.quantity > 0 && product.quantity <= 5)
     .sort((first, second) => first.quantity - second.quantity)
     .slice(0, 8), [products]);
-  const recentActivity = useMemo(() => [...reportHistory]
-    .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt))
-    .slice(0, 8), [reportHistory]);
 
   return {
     categories,
@@ -229,12 +198,8 @@ const useInventoryReport = (filters, { canViewProducts, canViewStock }) => {
     productsError,
     historyError,
     summary,
-    categoryData,
     stockOverview,
-    topProducts,
-    lowStockProducts,
-    recentActivity,
-    formatDate
+    lowStockProducts
   };
 };
 

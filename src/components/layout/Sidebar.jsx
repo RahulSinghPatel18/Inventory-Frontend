@@ -42,11 +42,7 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
         </div>
 
         <nav className={`flex-1 ${isCollapsed ? "px-2 py-4" : "px-3 py-4"}`}>
-          {!isCollapsed && (
-            <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] theme-text-muted">
-              Main menu
-            </p>
-          )}
+          
           {navigation.filter(canAccess).map((item) => {
             const Icon = item.icon;
 

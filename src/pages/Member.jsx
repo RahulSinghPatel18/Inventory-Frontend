@@ -10,7 +10,7 @@ import {
   UserRoundX,
   Users as UsersIcon
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import Button from "../components/common/Button";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import EmptyState from "../components/common/EmptyState";
@@ -433,16 +433,52 @@ const Users = () => {
                     </form>
                   ) : (
                     <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold theme-text-primary">{member.name}</p>
-                        <p className="truncate text-sm theme-text-muted">{member.email}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs theme-text-muted">
-                          <span className="capitalize">{member.role}</span>
+                      <div className="flex min-w-0 items-center gap-3">
+                        {member.profileImage ? (
+                          <img
+                            src={member.profileImage}
+                            alt=""
+                            className="h-11 w-11 shrink-0 rounded-full border theme-border object-cover"
+                          />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full theme-primary-soft text-sm font-bold theme-primary-text"
+                          >
+                            {member.name?.trim()?.charAt(0)?.toUpperCase() || "M"}
+                          </span>
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold theme-text-primary">{member.name}</p>
+                          <p className="truncate text-sm theme-text-muted">{member.email}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs theme-text-muted">
+                          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                            member.role === "admin"
+                              ? "theme-primary-soft theme-primary-text"
+                              : normalizePermissions(member.permissions).length === 0
+                                ? "theme-neutral-soft theme-text-secondary"
+                                : "theme-info-soft theme-info"
+                          }`}>
+                            {member.role === "admin"
+                              ? "Admin"
+                              : normalizePermissions(member.permissions).length === 0
+                                ? "Viewer"
+                                : "Member"}
+                          </span>
                           <span className={member.isActive === false ? "theme-danger" : "theme-success"}>
                             {member.isActive === false ? "Inactive" : "Active"}
                           </span>
+                          {member.createdAt && !Number.isNaN(new Date(member.createdAt).getTime()) && (
+                            <span>
+                              Joined {new Date(member.createdAt).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric"
+                              })}
+                            </span>
+                          )}
+                          </div>
                         </div>
-                       
                       </div>
                       {member.role === "user" && (
                         <div className="flex flex-wrap gap-2">

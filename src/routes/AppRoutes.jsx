@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import Loader from "../components/common/Loader";
 import ProtectedRoute from "./ProtectedRoute";
@@ -28,10 +28,11 @@ const ResetPassword = lazy(() => import("../pages/ResetPassword"));
 const LegalPage = lazy(() => import("../pages/LegalPage"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
-const AppRoutes = () => {
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
   return (
-    <BrowserRouter>
-      <Suspense fallback={<Loader message="Loading..." />}>
+    <div key={location.pathname} className="motion-safe:animate-[route-enter_220ms_ease-out_both]">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -59,9 +60,16 @@ const AppRoutes = () => {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Suspense>
-    </BrowserRouter>
+    </div>
   );
 };
+
+const AppRoutes = () => (
+  <BrowserRouter>
+    <Suspense fallback={<Loader message="Loading..." />}>
+      <AnimatedRoutes />
+    </Suspense>
+    </BrowserRouter>
+);
 
 export default AppRoutes;

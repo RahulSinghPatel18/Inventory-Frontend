@@ -19,6 +19,16 @@ const notificationService = {
     return response.data;
   },
 
+  dismiss: async (id) => {
+    const response = await api.delete(`/notifications/${id}`);
+    return response.data;
+  },
+
+  clearAll: async () => {
+    const response = await api.delete("/notifications");
+    return response.data;
+  },
+
   stream: async (onNotification, signal, onReady) => {
     const response = await fetch(api.getUri({ url: "/notifications/stream" }), {
       headers: { Authorization: `Bearer ${storage.getToken() || ""}` },

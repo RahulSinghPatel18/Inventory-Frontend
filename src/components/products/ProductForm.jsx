@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "../../utils/appToast";
 import { X } from "lucide-react";
 
 import Input from "../common/Input";

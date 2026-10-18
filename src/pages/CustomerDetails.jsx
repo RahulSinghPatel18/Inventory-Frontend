@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import Layout from "../components/layout/Layout";
 import Button from "../components/common/Button";
 import ConfirmDialog from "../components/common/ConfirmDialog";
@@ -227,7 +227,26 @@ const CustomerDetails = () => {
       </section>}
       <section id="customer-ledger" className="mt-5 scroll-mt-24 overflow-hidden rounded-2xl border theme-border theme-surface">
         <h2 className="border-b theme-border-subtle px-5 py-4 font-semibold theme-text-primary">Customer ledger</h2>
-        {ledgerEntries.length === 0 ? <p className="p-5 text-sm theme-text-muted">No ledger entries yet.</p> : <div className="overflow-x-auto">
+        {ledgerEntries.length === 0 ? <p className="p-5 text-sm theme-text-muted">No ledger entries yet.</p> : <>
+          <div className="grid gap-3 p-4 md:hidden">
+            {ledgerEntries.map((entry) => (
+              <article key={`${entry.type}-${entry._id}`} className="rounded-xl border theme-border theme-surface p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold capitalize theme-text-primary">{entry.type}{entry.status === "cancelled" ? " (cancelled)" : ""}</p>
+                    <p className="mt-1 text-xs theme-text-muted">{new Date(entry.createdAt).toLocaleString()}</p>
+                  </div>
+                  <span className="shrink-0 text-right text-xs theme-text-muted">Recorded by<br /><span className="font-medium theme-text-secondary">{entry.recordedBy?.name || "—"}</span></span>
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Udhaar amount</dt><dd className="mt-1 font-medium theme-text-primary">{money(entry.udhaarAmountCents / 100)}</dd></div>
+                  <div className="rounded-lg theme-surface-secondary p-2.5"><dt className="text-xs theme-text-muted">Payment amount</dt><dd className="mt-1 font-medium theme-text-primary">{money(entry.paymentAmountCents / 100)}</dd></div>
+                  <div className="col-span-2 rounded-lg theme-danger-soft p-2.5"><dt className="text-xs theme-danger">Balance / pending</dt><dd className="mt-1 font-semibold theme-danger">{money(entry.balanceCents / 100)}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="theme-surface-secondary theme-text-muted"><tr>{["Date", "Transaction type", "Udhaar amount", "Payment amount", "Balance / pending", "Recorded by"].map((label) => <th key={label} className="px-4 py-3 font-medium">{label}</th>)}</tr></thead>
             <tbody className="divide-y theme-border-subtle">{ledgerEntries.map((entry) => <tr key={`${entry.type}-${entry._id}`}>
@@ -239,7 +258,8 @@ const CustomerDetails = () => {
               <td className="px-4 py-3 theme-text-secondary">{entry.recordedBy?.name || "—"}</td>
             </tr>)}</tbody>
           </table>
-        </div>}
+          </div>
+        </>}
         {ledgerPagination?.totalPages > 1 && <div className="flex items-center justify-between border-t theme-border-subtle px-4 py-3 text-sm"><span className="theme-text-muted">Ledger page {ledgerPagination.page} of {ledgerPagination.totalPages}</span><div className="flex gap-2"><Button variant="outline" disabled={ledgerPage <= 1} onClick={() => setLedgerPage((current) => current - 1)}>Previous</Button><Button variant="outline" disabled={ledgerPage >= ledgerPagination.totalPages} onClick={() => setLedgerPage((current) => current + 1)}>Next</Button></div></div>}
       </section>
     </>}

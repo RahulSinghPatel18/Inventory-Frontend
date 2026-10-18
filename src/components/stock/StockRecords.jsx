@@ -119,7 +119,7 @@ const StockRecords = (props) => {
           <EmptyState title="No stock movements yet" message="Stock in and stock out activity will appear here." icon={Clock3} className="min-h-[260px]" />
         ) : (
           <>
-            <div className="hidden overflow-x-auto min-[648px]:block">
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead><tr className="border-b theme-border-subtle theme-surface-secondary text-left">
                   {[
@@ -160,7 +160,7 @@ const StockRecords = (props) => {
                 </tbody>
               </table>
             </div>
-            <div className="grid grid-cols-1 gap-3 p-4 min-[648px]:hidden">
+            <div className="grid grid-cols-1 gap-3 p-4 md:hidden">
               {history.map((entry) => (
                 <article key={entry._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
                   <div className="flex items-center gap-3">
@@ -202,7 +202,7 @@ const StockRecords = (props) => {
       />
     ) : (
       <>
-        <div className="hidden overflow-x-auto min-[648px]:block">
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead><tr className="border-b theme-border-subtle theme-surface-secondary text-left">
               {[
@@ -231,7 +231,7 @@ const StockRecords = (props) => {
             </tbody>
           </table>
         </div>
-        <div className="grid grid-cols-1 gap-3 p-4 min-[648px]:hidden">
+        <div className="grid grid-cols-1 gap-3 p-4 md:hidden">
           {alerts.products.map((product) => (
             <article key={product._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
               <div className="flex items-center gap-3">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BarChart3 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 
 import Layout from "../components/layout/Layout";
 import ReportFilters from "../components/reports/ReportFilters";
@@ -63,17 +63,10 @@ const Reports = () => {
             </span>
             <div className="min-w-0">
               <h1 className="text-xl font-bold theme-text-primary sm:text-2xl">Reports</h1>
-              <p className="mt-1 text-sm theme-text-muted">Business performance and inventory at a glance</p>
+              <p className="mt-1 text-sm theme-text-muted">Key business and inventory metrics</p>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-2 sm:justify-end">
-            <div className="flex flex-wrap gap-1.5" aria-label="Available report sections">
-              {reportAreas.map((area) => (
-                <span key={area} className="rounded-full theme-surface-secondary px-2.5 py-1 text-xs font-medium theme-text-secondary">
-                  {area}
-                </span>
-              ))}
-            </div>
+          <div className="flex justify-end">
             {reportAreas.length > 0 && (
               <ExportMenu dataset="reports" title="Reports" filters={filters} />
             )}
@@ -92,33 +85,28 @@ const Reports = () => {
           canViewStock={canViewStock}
         />}
 
-        {(canViewSales || canViewUdhaar) && (
-          <BusinessReports
-            sales={businessReport.data.sales}
-            udhaar={businessReport.data.udhaar}
-            customers={businessReport.data.customers}
-            errors={businessReport.errors}
-            loading={businessReport.loading}
-            canViewSales={canViewSales}
-            canViewUdhaar={canViewUdhaar}
-          />
-        )}
-
         {(canViewProducts || canViewStock) && (
           <ReportVisualizations
             loading={report.loading}
             productsError={report.productsError}
             historyError={report.historyError}
             summary={report.summary}
-            categoryData={report.categoryData}
             stockOverview={report.stockOverview}
-            topProducts={report.topProducts}
             lowStockProducts={report.lowStockProducts}
-            recentActivity={report.recentActivity}
-            formatDate={report.formatDate}
             canViewProducts={canViewProducts}
             canViewStock={canViewStock}
             canViewProductDetails={canViewProductDetails}
+          />
+        )}
+
+        {(canViewSales || canViewUdhaar) && (
+          <BusinessReports
+            sales={businessReport.data.sales}
+            udhaar={businessReport.data.udhaar}
+            errors={businessReport.errors}
+            loading={businessReport.loading}
+            canViewSales={canViewSales}
+            canViewUdhaar={canViewUdhaar}
           />
         )}
 

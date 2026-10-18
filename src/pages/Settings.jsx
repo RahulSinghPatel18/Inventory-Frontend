@@ -4,7 +4,6 @@ import {
   Bell,
   Building2,
   CircleUserRound,
-  IndianRupee,
   KeyRound,
   LogOut,
   Monitor,
@@ -14,7 +13,7 @@ import {
   Trash2,
   Users
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import { Link, useNavigate } from "react-router-dom";
 
 import Button from "../components/common/Button";
@@ -23,6 +22,7 @@ import OrganizationDangerZone from "../components/settings/OrganizationDangerZon
 import useAuth from "../hooks/useAuth";
 import useUiStore from "../store/uiStore";
 import { hasPermission } from "../utils/permissions";
+import { isSoundEnabled } from "../utils/soundEffects";
 
 const SETTINGS_STORAGE_KEY = "stockpro-settings";
 
@@ -99,6 +99,7 @@ const Settings = () => {
   const setTheme = useUiStore((state) => state.setTheme);
   const navigate = useNavigate();
   const [settings, setSettings] = useState(readSettings);
+  const [soundEnabled, setSoundEnabled] = useState(isSoundEnabled);
   const [isUpdatingTwoFactor, setIsUpdatingTwoFactor] = useState(false);
 
   const organization = user?.organizationId;
@@ -123,6 +124,15 @@ const Settings = () => {
     });
   };
 
+  const updateSoundPreference = (enabled) => {
+    try {
+      localStorage.setItem("soundEnabled", String(enabled));
+      setSoundEnabled(enabled);
+    } catch {
+      toast.error("Sound preference could not be saved on this device.");
+    }
+  };
+
   const handleTwoFactorChange = async (enabled) => {
     setIsUpdatingTwoFactor(true);
     try {
@@ -143,11 +153,11 @@ const Settings = () => {
   return (
     <Layout>
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6 flex items-center gap-4 rounded-2xl border theme-border theme-surface p-5 shadow-sm sm:p-7">
+        <header className="mb-6 flex items-start gap-4 rounded-2xl border theme-border theme-surface p-4 shadow-sm sm:items-center sm:p-7">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl theme-primary-soft theme-primary-text">
             <SlidersHorizontal size={22} />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wider theme-primary-text">Workspace</p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight theme-text-primary">Settings</h1>
             <p className="mt-1 text-sm theme-text-muted">Manage your account, alerts, appearance, and preferences</p>
@@ -160,7 +170,7 @@ const Settings = () => {
               <a
                 key={id}
                 href={`#${id}`}
-                className="inline-flex shrink-0 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium theme-text-secondary transition theme-hover-neutral focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus-ring)]"
+                className="inline-flex min-h-11 shrink-0 items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 text-sm font-medium theme-text-secondary transition theme-hover-neutral focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus-ring)]"
               >
                 <Icon size={17} className="shrink-0 theme-text-muted" />
                 {label}
@@ -289,6 +299,14 @@ const Settings = () => {
             <p className="mt-3 text-xs theme-text-muted">
               System automatically follows your device’s light or dark appearance.
             </p>
+            <div className="mt-5 border-t theme-border-subtle pt-4">
+              <PreferenceToggle
+                label="Sound effects"
+                description="Play sounds for sign-in, notifications, successful actions, and errors"
+                checked={soundEnabled}
+                onChange={updateSoundPreference}
+              />
+            </div>
           </Section>
 
        

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 
 import Layout from "../components/layout/Layout";
 import PageHeader from "../components/common/PageHeader";
@@ -260,7 +260,9 @@ const Stock = () => {
         <PageHeader
           title="Stock Management"
           description={`${user?.organizationName || "Your organization"} · Record stock movements and review availability`}
-          action={canViewHistory ? <ExportMenu dataset="stock-history" title="stock history" /> : null}
+          action={canViewHistory ? (
+            <ExportMenu dataset="stock-history" title="stock history" filters={historyFilters} />
+          ) : null}
         />
         <StockMovement
           products={canListProducts ? products : []}

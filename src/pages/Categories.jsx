@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import { FolderKanban, Pencil, Plus, Trash2 } from "lucide-react";
 
 import Layout from "../components/layout/Layout";
@@ -156,7 +156,7 @@ const Categories = () => {
             />
           ) : (
             <>
-            <div className="hidden overflow-x-auto min-[648px]:block">
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead>
                   <tr className="border-b theme-border-subtle theme-surface-secondary text-left">
@@ -223,7 +223,7 @@ const Categories = () => {
                 </tbody>
               </table>
             </div>
-            <div className="grid grid-cols-1 gap-4 p-4 min-[648px]:hidden">
+            <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
               {categories.map((category) => (
                 <article key={category._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-3">

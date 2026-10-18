@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Bug, CircleHelp, Lightbulb, Send } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../../utils/appToast";
 
 import Button from "./Button";
 import Modal from "./Modal";

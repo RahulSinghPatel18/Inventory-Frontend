@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Bell, CheckCheck, Menu, MessageSquareText, Moon, Sun } from "lucide-react";
+import { ArrowUpRight, Bell, CheckCheck, Menu, MessageSquareText, Moon, Sun, X } from "lucide-react";
+import { toast } from "../../utils/appToast";
+import { playSoundEffect } from "../../utils/soundEffects";
 
 import BrandLogo from "../common/BrandLogo";
 import FeedbackReportModal from "../common/FeedbackReportModal";
@@ -39,8 +41,25 @@ const Navbar = ({ onMenuClick }) => {
   const [notificationError, setNotificationError] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationLimit, setNotificationLimit] = useState(() =>
+    window.matchMedia("(min-width: 768px)").matches ? 5 : 3
+  );
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+  const [clearingNotifications, setClearingNotifications] = useState(false);
+  const [dismissingIds, setDismissingIds] = useState([]);
   const notificationRef = useRef(null);
   const notificationTypes = useRef(getNotificationTypes());
+  const toastedNotificationIds = useRef(new Set());
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const updateLimit = (event) => {
+      setNotificationLimit(event.matches ? 5 : 3);
+      setShowAllNotifications(false);
+    };
+    mediaQuery.addEventListener("change", updateLimit);
+    return () => mediaQuery.removeEventListener("change", updateLimit);
+  }, []);
 
   const refreshNotifications = useCallback(async () => {
     const data = await notificationService.list(notificationTypes.current);
@@ -77,6 +96,25 @@ const Navbar = ({ onMenuClick }) => {
           await notificationService.stream(
             (incoming) => {
               if (!notificationTypes.current.includes(incoming.type)) return;
+              if (!toastedNotificationIds.current.has(incoming._id)) {
+                toastedNotificationIds.current.add(incoming._id);
+                const description = incoming.message || undefined;
+                const isStockAlert = incoming.type === "stock-out" || incoming.type === "stock-low";
+                playSoundEffect(isStockAlert ? "warning-error" : "notification");
+                if (incoming.type === "stock-out") {
+                  toast.error(incoming.title || "Out of Stock Alert", {
+                    description,
+                    duration: Infinity,
+                    sound: false
+                  });
+                } else if (incoming.type === "stock-low") {
+                  toast.warning(incoming.title || "Low Stock Warning", {
+                    description,
+                    duration: 5000,
+                    sound: false
+                  });
+                }
+              }
               setNotifications((current) => {
                 if (current.some((notification) => notification._id === incoming._id)) return current;
                 setUnreadCount((count) => count + 1);
@@ -163,6 +201,34 @@ const Navbar = ({ onMenuClick }) => {
     }
   };
 
+  const dismissNotification = async (notification) => {
+    setDismissingIds((current) => [...current, notification._id]);
+    try {
+      await notificationService.dismiss(notification._id);
+      setNotifications((current) => current.filter((item) => item._id !== notification._id));
+      if (!notification.isRead) setUnreadCount((count) => Math.max(0, count - 1));
+    } catch (error) {
+      setNotificationError(error.response?.data?.message || "Unable to dismiss notification.");
+    } finally {
+      setDismissingIds((current) => current.filter((id) => id !== notification._id));
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    setClearingNotifications(true);
+    try {
+      await notificationService.clearAll();
+      setNotifications([]);
+      setUnreadCount(0);
+      setShowAllNotifications(false);
+      setNotificationError("");
+    } catch (error) {
+      setNotificationError(error.response?.data?.message || "Unable to clear notifications.");
+    } finally {
+      setClearingNotifications(false);
+    }
+  };
+
   const destinationFor = (notification) => {
     if (notification.entityType === "product" && canViewProducts) {
       return `/products/${notification.entityId}`;
@@ -228,13 +294,21 @@ const Navbar = ({ onMenuClick }) => {
                   <p className="mt-0.5 text-xs theme-text-muted">{unreadCount} unread</p>
                 </div>
                 <div className="flex items-center gap-1">
+                  {notifications.length > 0 && <button
+                    type="button"
+                    onClick={clearAllNotifications}
+                    disabled={clearingNotifications}
+                    className="min-h-11 rounded-lg px-2 text-xs font-semibold theme-danger transition theme-hover-danger disabled:opacity-60"
+                  >
+                    {clearingNotifications ? "Clearing…" : "Clear all"}
+                  </button>}
                   {unreadCount > 0 && <button type="button" onClick={markAllRead} className="rounded-lg p-2 text-xs font-medium theme-primary-text theme-hover-neutral" aria-label="Mark all notifications as read" title="Mark all as read"><CheckCheck size={17} /></button>}
                   {canViewNotificationSettings && <Link to="/settings#notifications" onClick={() => setNotificationsOpen(false)} className="rounded-lg p-2 theme-text-muted theme-hover-neutral" aria-label="Notification preferences"><ArrowUpRight size={16} /></Link>}
                 </div>
               </div>
               {notificationsLoading ? <p className="p-4 text-sm theme-text-muted">Loading notifications…</p> : notificationError ? <p role="alert" className="p-4 text-sm theme-danger">{notificationError}</p> : <>
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain divide-y theme-border-subtle sm:max-h-[min(70vh,24rem)]">
-                  {notifications.map((notification) => {
+                  {notifications.slice(0, showAllNotifications ? notifications.length : notificationLimit).map((notification) => {
                     const destination = destinationFor(notification);
                     const content = (
                       <>
@@ -246,12 +320,33 @@ const Navbar = ({ onMenuClick }) => {
                         </span>
                       </>
                     );
-                    const rowClass = `flex w-full items-start gap-3 px-4 py-3 text-left transition theme-hover-surface ${notification.isRead ? "opacity-75" : ""}`;
-                    return destination
-                      ? <Link key={notification._id} to={destination} onClick={() => { void markRead(notification); setNotificationsOpen(false); }} className={rowClass}>{content}</Link>
-                      : <button key={notification._id} type="button" onClick={() => markRead(notification)} className={rowClass}>{content}</button>;
+                    const rowClass = `flex min-w-0 flex-1 items-start gap-3 px-4 py-3 text-left transition theme-hover-surface ${notification.isRead ? "opacity-75" : ""}`;
+                    return (
+                      <div key={notification._id} className="flex items-start gap-1">
+                        {destination
+                          ? <Link to={destination} onClick={() => { void markRead(notification); setNotificationsOpen(false); }} className={rowClass}>{content}</Link>
+                          : <button type="button" onClick={() => markRead(notification)} className={rowClass}>{content}</button>}
+                        <button
+                          type="button"
+                          onClick={() => dismissNotification(notification)}
+                          disabled={dismissingIds.includes(notification._id)}
+                          aria-label={`Dismiss ${notification.title}`}
+                          title="Dismiss notification"
+                          className="mt-1 mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg theme-text-muted transition theme-hover-neutral theme-hover-text-primary disabled:opacity-50"
+                        >
+                          <X size={16} aria-hidden="true" />
+                        </button>
+                      </div>
+                    );
                   })}
-                  {!notifications.length && <p className="p-5 text-center text-sm theme-text-muted">You’re all caught up.</p>}
+                  {!notifications.length && <p className="p-5 text-center text-sm theme-text-muted">No new notifications.</p>}
+                  {notifications.length > notificationLimit && <button
+                    type="button"
+                    onClick={() => setShowAllNotifications((showing) => !showing)}
+                    className="min-h-11 w-full px-4 text-sm font-semibold theme-primary-text theme-hover-surface"
+                  >
+                    {showAllNotifications ? "Show less" : `View more (${notifications.length - notificationLimit})`}
+                  </button>}
                 </div>
                 {hasPermission(user, "stock.view") && <div className="shrink-0 border-t theme-border-subtle px-4 py-3"><Link to="/stock" onClick={() => setNotificationsOpen(false)} className="text-sm font-medium theme-primary-text">View stock <span aria-hidden="true">→</span></Link></div>}
               </>}

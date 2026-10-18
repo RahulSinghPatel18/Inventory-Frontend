@@ -11,11 +11,10 @@ const BrandLogo = ({ size = "md", className = "", showMark = true }) => (
     aria-label="MYStockHub"
     className={`inline-flex items-center ${showMark ? "gap-2.5" : ""} whitespace-nowrap font-extrabold leading-none ${sizeClasses[size]} ${className}`}
   >
-  
     <span className="inline-flex items-baseline tracking-[-0.045em]">
-      <span className="text-[#0F172A]">MY</span>
-      <span className="text-[#16A34A]">Stock</span>
-      <span className="text-[#0F172A]">Hub</span>
+      <span className="brand-logo-primary">MY</span>
+      <span className="brand-logo-accent">Stock</span>
+      <span className="brand-logo-primary">Hub</span>
     </span>
   </span>
 );

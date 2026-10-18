@@ -55,6 +55,27 @@ html:not(.dark) {
     var(--theme-background);
 }
 
+.brand-logo-primary,
+.brand-logo-accent {
+  transition: color 180ms ease;
+}
+
+.brand-logo-primary {
+  color: #1e293b;
+}
+
+.brand-logo-accent {
+  color: #059669;
+}
+
+html.dark .brand-logo-primary {
+  color: #f8fafc;
+}
+
+html.dark .brand-logo-accent {
+  color: #22c55e;
+}
+
 @keyframes theme-modal-enter {
   from {
     opacity: 0;
@@ -63,6 +84,28 @@ html:not(.dark) {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes report-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

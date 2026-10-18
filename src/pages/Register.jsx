@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import { ArrowRight, CircleAlert } from "lucide-react";
 import AuthLayout from "../components/auth/AuthLayout";
 import GoogleSignInButton from "../components/auth/GoogleSignInButton";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import useAuth from "../hooks/useAuth";
+import { playSoundEffect } from "../utils/soundEffects";
 import { isRequired, isStrongPassword, isValidEmail } from "../utils/validators";
 import authService from "../services/authService";
 
@@ -21,6 +22,7 @@ const Register = () => {
     confirmPassword: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
 
@@ -33,6 +35,11 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!acceptedPolicies) {
+      playSoundEffect("warning-error");
+      setSubmitError("Please accept the Terms of Service and Privacy Policy to continue.");
+      return;
+    }
     const errors = {};
     if (!isRequired(formData.name)) errors.name = "Name is required";
     if (!isValidEmail(formData.email)) errors.email = "Enter a valid email address";
@@ -44,6 +51,7 @@ const Register = () => {
     }
     if (formData.password !== formData.confirmPassword) errors.confirmPassword = "Passwords do not match";
     if (Object.keys(errors).length) {
+      playSoundEffect("warning-error");
       setFieldErrors(errors);
       setSubmitError("");
       return;
@@ -57,13 +65,15 @@ const Register = () => {
         name: formData.name.trim(),
         email: formData.email.trim(),
         organizationName: formData.organizationName.trim(),
-        password: formData.password
+        password: formData.password,
+        acceptedPolicies
       });
       toast.success("Verification code sent to your email.");
       navigate(`/verify-email?email=${encodeURIComponent(formData.email.trim())}`, {
         state: { resendAfter: Date.now() + 60_000 }
       });
     } catch (error) {
+      playSoundEffect("warning-error");
       setSubmitError(
         error.response?.data?.message ||
         "We couldn’t create your account. Please review your details and try again."
@@ -85,9 +95,11 @@ const Register = () => {
         });
         return;
       }
-      toast.success("Google sign-in successful");
+      playSoundEffect("login-success");
+      toast.success("Google sign-in successful", { sound: false });
       navigate(data.user.mustChangePassword ? "/change-password" : "/dashboard", { replace: true });
     } catch (error) {
+      playSoundEffect("warning-error");
       setSubmitError(
         error.response?.data?.message ||
         "Google registration failed. Please try again."
@@ -191,7 +203,30 @@ const Register = () => {
         <p className="text-[11px] leading-4 theme-text-muted">
           Use at least 8 characters with uppercase, lowercase, a number and a symbol.
         </p>
-        <Button type="submit" loading={isLoading} loadingText="Sending verification code..." className="group w-full">
+        <label className="flex items-start gap-2.5 py-2 text-xs leading-5 theme-text-secondary">
+          <input
+            type="checkbox"
+            checked={acceptedPolicies}
+            onChange={(event) => {
+              setAcceptedPolicies(event.target.checked);
+              setSubmitError("");
+            }}
+            disabled={isLoading}
+            required
+            className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
+          />
+          <span>
+            I agree to the{" "}
+            <Link to="/terms-of-service" target="_blank" rel="noopener noreferrer" className="font-semibold theme-primary-text hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-semibold theme-primary-text hover:underline">
+              Privacy Policy
+            </Link>.
+          </span>
+        </label>
+        <Button type="submit" loading={isLoading} loadingText="Sending verification code..." disabled={!acceptedPolicies} className="group w-full">
           <span>Create account</span>
           {!isLoading && <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />}
         </Button>

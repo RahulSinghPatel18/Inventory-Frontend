@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { CircleAlert } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import AuthLayout from "../components/auth/AuthLayout";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";

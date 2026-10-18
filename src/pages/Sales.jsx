@@ -7,7 +7,7 @@ import {
   Package,
   ShoppingCart
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import Layout from "../components/layout/Layout";
 import Button from "../components/common/Button";
 import Modal from "../components/common/Modal";
@@ -27,7 +27,7 @@ const money = (amount) => new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 2
 }).format(Number(amount || 0));
 
-const fieldClass = "mt-1 w-full rounded-xl border theme-border theme-surface px-3 py-2.5 text-sm theme-text-primary";
+const fieldClass = "mt-1 w-full rounded-xl border theme-border theme-surface px-3 py-3 text-sm theme-text-primary";
 const emptyLine = () => ({ productId: "", quantity: "1", price: "" });
 const nonEmptyFilters = (filters) => Object.fromEntries(
   Object.entries(filters).filter(([, value]) => value !== "")
@@ -196,7 +196,7 @@ const Sales = () => {
           description={`Product sales for ${user?.organizationName || "your organization"}.`}
           action={(canCreate || canViewSales) ? (
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-              {canViewSales && <ExportMenu dataset="sales" title="sales history" />}
+              {canViewSales && <ExportMenu dataset="sales" title="sales history" filters={filters} />}
               {canCreate && <Button onClick={openSaleForm} loading={productsLoading}>New sale</Button>}
             </div>
           ) : null}
@@ -226,7 +226,7 @@ const Sales = () => {
             <p className="p-6 text-sm theme-text-muted">No sales found. Create a sale or adjust the filters.</p>
           ) : (
             <>
-            <div className="hidden overflow-x-auto min-[648px]:block">
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="theme-surface-secondary theme-text-muted">
                   <tr>
@@ -266,7 +266,7 @@ const Sales = () => {
                 </tbody>
               </table>
             </div>
-            <div className="grid grid-cols-1 gap-3 p-4 min-[648px]:hidden">
+            <div className="grid grid-cols-1 gap-3 p-4 md:hidden">
               {sales.map((sale) => (
                 <article key={sale._id} className="rounded-xl border theme-border theme-surface p-4 shadow-sm">
                   <div className="flex items-start gap-3">

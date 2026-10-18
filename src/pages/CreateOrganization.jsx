@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Building2, CircleAlert } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "../utils/appToast";
 import AuthLayout from "../components/auth/AuthLayout";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import useAuth from "../hooks/useAuth";
 import { isRequired } from "../utils/validators";
+import { playSoundEffect } from "../utils/soundEffects";
 
 const CreateOrganization = () => {
   const location = useLocation();
@@ -14,6 +15,7 @@ const CreateOrganization = () => {
   const { isAuthenticated, registerGoogleOrganization } = useAuth();
   const registrationToken = location.state?.registrationToken;
   const [organizationName, setOrganizationName] = useState("");
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -21,11 +23,18 @@ const CreateOrganization = () => {
     event.preventDefault();
     setError("");
     if (!isRequired(organizationName) || organizationName.trim().length > 120) {
+      playSoundEffect("warning-error");
       setError("Enter an organization name no longer than 120 characters.");
       return;
     }
     if (!registrationToken) {
+      playSoundEffect("warning-error");
       setError("Your Google registration session is missing or expired. Start again from registration.");
+      return;
+    }
+    if (!acceptedPolicies) {
+      playSoundEffect("warning-error");
+      setError("Please accept the Terms of Service and Privacy Policy to continue.");
       return;
     }
 
@@ -33,11 +42,14 @@ const CreateOrganization = () => {
     try {
       await registerGoogleOrganization({
         registrationToken,
-        organizationName: organizationName.trim()
+        organizationName: organizationName.trim(),
+        acceptedPolicies
       });
-      toast.success("Organization created. Welcome to MYStockHub.");
+      toast.success("Organization created. Welcome to MYStockHub.", { sound: false });
+      playSoundEffect("login-success");
       navigate("/dashboard", { replace: true });
     } catch (requestError) {
+      playSoundEffect("warning-error");
       setError(requestError.response?.data?.message || "Unable to create your organization. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -85,7 +97,30 @@ const CreateOrganization = () => {
           disabled={isSubmitting}
           maxLength={120}
         />
-        <Button type="submit" loading={isSubmitting} loadingText="Creating organization..." className="w-full">
+        <label className="flex items-start gap-2.5 text-xs leading-5 theme-text-secondary">
+          <input
+            type="checkbox"
+            checked={acceptedPolicies}
+            onChange={(event) => {
+              setAcceptedPolicies(event.target.checked);
+              setError("");
+            }}
+            disabled={isSubmitting}
+            required
+            className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
+          />
+          <span>
+            I agree to the{" "}
+            <Link to="/terms-of-service" target="_blank" rel="noopener noreferrer" className="font-semibold theme-primary-text hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" className="font-semibold theme-primary-text hover:underline">
+              Privacy Policy
+            </Link>.
+          </span>
+        </label>
+        <Button type="submit" loading={isSubmitting} loadingText="Creating organization..." disabled={!acceptedPolicies} className="w-full">
           Create organization
         </Button>
       </form>
